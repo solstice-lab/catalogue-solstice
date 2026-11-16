@@ -172,7 +172,8 @@ dépendance ni réseau, avant chaque commande (Bash, PowerShell, terminal de
 l'appli de bureau) et chaque écriture de fichier (Write, Edit, MultiEdit,
 NotebookEdit). Il refuse : écrire un `.env*` (hors `.env.example`), `.envrc` ou
 `.npmrc`, un mot de passe de base distante dans une commande, une URL de base
-distante avec mot de passe dans un fichier, `git add -f`, `--confirmer`, la
+distante avec mot de passe dans un fichier, `git add -f`, `--confirmer`,
+`--env-local` (qui écrit `.env.local`), la
 fusion d'une PR (`gh pr merge` ou l'API), `git push --force`
 (`--force-with-lease` passe) et `--no-verify`, y compris confiés à un
 interpréteur (`sh -c`, `pwsh -Command`, heredoc exécuté). En `claude -p`, les

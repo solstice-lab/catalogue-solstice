@@ -32,7 +32,7 @@ import path from "node:path";
 import { argumentTexte, drapeauPresent } from "./lib/cli";
 import {
   commandesDesTests,
-  ligneEnvLocal,
+  lignesAVerifier,
   modeleAvecComptes,
   nomsDesBases,
   preparerEnvLocal,
@@ -60,6 +60,10 @@ function portPublie(conteneur: string): number {
 
 function principal(): void {
   const conteneur = argumentTexte("conteneur") ?? CONTENEUR_PAR_DEFAUT;
+  // --admin seul ne crée rien : le taire laisserait croire le premier admin posé.
+  if (argumentTexte("admin") !== null && !drapeauPresent("env-local")) {
+    throw new Error("--admin ne sert qu'avec --env-local, qui crée .env.local : ajouter --env-local.");
+  }
   const cheminPaquet = path.join(process.cwd(), "package.json");
   if (!fs.existsSync(cheminPaquet)) {
     throw new Error("package.json introuvable : lancer ce script depuis la racine du projet.");
@@ -109,17 +113,17 @@ function principal(): void {
       adresseAdmin: argumentTexte("admin"),
       plateforme: process.platform,
     });
-  } else if (fs.existsSync(path.join(dossier, ".env.local"))) {
-    envLocal = [".env.local existe déjà : y vérifier ces lignes.", "", ligneEnvLocal(bases, port), "PGSSLMODE=disable"];
   } else {
     const modele = path.join(dossier, ".env.example");
     const avecComptes = fs.existsSync(modele) && modeleAvecComptes(fs.readFileSync(modele, "utf-8"));
-    envLocal = [
-      "Pour créer .env.local, une commande à taper soi-même (Claude n'écrit pas ce fichier) :",
-      "",
-      `npx tsx scripts/bases-locales.ts --env-local${avecComptes ? " --admin=votre.adresse@exemple.fr" : ""}`,
-      ...(avecComptes ? ["", "L'adresse est celle du premier admin : sans elle, personne n'entre en local."] : []),
-    ];
+    envLocal = fs.existsSync(path.join(dossier, ".env.local"))
+      ? [".env.local existe déjà.", ...lignesAVerifier(bases, port, avecComptes)]
+      : [
+          "Pour créer .env.local, une commande à taper soi-même (Claude n'écrit pas ce fichier) :",
+          "",
+          `npx tsx scripts/bases-locales.ts --env-local${avecComptes ? " --admin=votre.adresse@exemple.fr" : ""}`,
+          ...(avecComptes ? ["", "L'adresse est celle du premier admin : sans elle, personne n'entre en local."] : []),
+        ];
   }
   console.log(["", ...envLocal, "", ...commandesDesTests(urlLocale(bases.test, port), process.platform)].join("\n"));
 }

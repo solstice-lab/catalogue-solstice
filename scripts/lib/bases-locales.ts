@@ -78,7 +78,13 @@ export function urlLocale(base: string, port: number): string {
 // qu'un terminal bash ne comprend pas. `plateforme` : process.platform.
 export function commandesDesTests(urlTest: string, plateforme: string): string[] {
   if (plateforme === "win32") {
-    return ["Tests (PowerShell) :", "", `$env:DATABASE_URL = '${urlTest}'`, "$env:PGSSLMODE = 'disable'", "npm test"];
+    // Retirées dans la même ligne : restées posées, un `npm run dev` lancé
+    // ensuite dans la fenêtre viserait la base des tests, que chacun vide.
+    return [
+      "Tests (PowerShell) :",
+      "",
+      `$env:DATABASE_URL = '${urlTest}'; $env:PGSSLMODE = 'disable'; npm test; Remove-Item Env:DATABASE_URL, Env:PGSSLMODE`,
+    ];
   }
   return ["Tests :", "", `DATABASE_URL=${urlTest} PGSSLMODE=disable npm test`];
 }
@@ -87,6 +93,23 @@ export function commandesDesTests(urlTest: string, plateforme: string): string[]
 // en minuscules, à celle qui se connecte. Une faute de frappe (« admin@ »)
 // laisserait la personne à la porte de son appli sans qu'elle comprenne.
 const ADRESSE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Celle des consignes (README, skill creer-appli, sortie du script), recopiée
+// telle quelle : le premier admin serait une adresse que personne n'a.
+const ADRESSE_D_EXEMPLE = "votre.adresse@exemple.fr";
+
+// Ce qu'un .env.local déjà là doit porter pour le travail local : la base _dev
+// et, avec la brique comptes, les deux variables que l'essai du 2026-11-13 a
+// vu oublier.
+export function lignesAVerifier(bases: BasesLocales, port: number, avecComptes: boolean): string[] {
+  return [
+    "Lignes à y vérifier :",
+    ligneEnvLocal(bases, port),
+    "PGSSLMODE=disable",
+    ...(avecComptes
+      ? ["AUTH_SECRET=<32 caractères aléatoires au moins>", "COMPTES_PREMIER_ADMIN=<l'adresse qui se connecte>"]
+      : []),
+  ];
+}
 
 // La brique comptes se reconnaît à la ligne AUTH_SECRET de .env.example, que
 // l'assembleur retire avec elle : le modèle dit ce que l'appli a gardé.
@@ -114,13 +137,19 @@ export type OptionsEnvLocal = {
  * .env*, et refusent --env-local pour la même raison (.claude/hooks/gardes.mjs).
  *
  * N'écrase jamais un .env.local existant : il peut porter des valeurs que rien
- * ne sait refaire (une clé de test, un secret Google). Lève une Error, sans rien écrire, si une condition manque ; renvoie
- * sinon le compte rendu, sans le secret.
+ * ne sait refaire (une clé de test, un secret Google). Lève une Error, sans
+ * rien écrire, si une condition manque ; renvoie sinon le compte rendu, sans
+ * le secret.
  */
 export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
   const { dossier, bases, port, adresseAdmin, plateforme } = options;
   const cheminModele = path.join(dossier, ".env.example");
   const cheminLocal = path.join(dossier, ".env.local");
+  if (!fs.existsSync(cheminModele)) {
+    throw new Error(".env.example introuvable : lancer cette commande depuis la racine de l'appli.");
+  }
+  const modele = fs.readFileSync(cheminModele, "utf-8");
+  const avecComptes = modeleAvecComptes(modele);
 
   if (fs.existsSync(cheminLocal)) {
     const renommer =
@@ -130,16 +159,11 @@ export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
         ".env.local existe déjà : laissé tel quel, il n'est jamais écrasé.",
         `Pour repartir du modèle, le renommer (${renommer}), relancer cette commande, puis reprendre`,
         "dans .env.local les valeurs de .env.local.ancien qu'il faut garder.",
-        `Sinon, y vérifier la ligne ${ligneEnvLocal(bases, port)}`,
+        ...lignesAVerifier(bases, port, avecComptes),
       ].join("\n")
     );
   }
-  if (!fs.existsSync(cheminModele)) {
-    throw new Error(".env.example introuvable : lancer cette commande depuis la racine de l'appli.");
-  }
 
-  const modele = fs.readFileSync(cheminModele, "utf-8");
-  const avecComptes = modeleAvecComptes(modele);
   if (avecComptes) {
     if (adresseAdmin === null) {
       throw new Error(
@@ -149,6 +173,9 @@ export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
     }
     if (!ADRESSE.test(adresseAdmin)) {
       throw new Error(`« ${adresseAdmin} » n'est pas une adresse e-mail : --admin=votre.adresse@exemple.fr`);
+    }
+    if (adresseAdmin.toLowerCase() === ADRESSE_D_EXEMPLE) {
+      throw new Error(`« ${adresseAdmin} » est l'adresse d'exemple : la remplacer par celle qui se connectera.`);
     }
   }
 
@@ -164,10 +191,15 @@ export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
   for (const [nom, valeur] of valeurs) {
     // `.` s'arrête avant le \r d'un modèle en CRLF : la fin de ligne reste.
     // Une fonction de remplacement : un « $ » de la valeur resterait littéral.
-    contenu = contenu.replace(new RegExp(`^${nom}=.*$`, "m"), () => `${nom}=${valeur}`);
+    const ligne = new RegExp(`^${nom}=.*$`, "m");
+    if (ligne.test(contenu)) contenu = contenu.replace(ligne, () => `${nom}=${valeur}`);
+    // Un modèle retouché qui l'a perdue : l'ajouter, sinon le compte rendu
+    // la dirait posée sans qu'elle le soit.
+    else contenu = `${contenu}${/\n$/.test(contenu) || contenu === "" ? "" : "\n"}${nom}=${valeur}\n`;
   }
   // « wx » : jamais d'écrasement, même si le fichier est apparu entre-temps.
-  fs.writeFileSync(cheminLocal, contenu, { encoding: "utf-8", flag: "wx" });
+  // 0600 : le secret n'est lisible que par son propriétaire (sans effet sous Windows).
+  fs.writeFileSync(cheminLocal, contenu, { encoding: "utf-8", flag: "wx", mode: 0o600 });
 
   return [
     ".env.local : créé depuis .env.example (fichier ignoré par git).",

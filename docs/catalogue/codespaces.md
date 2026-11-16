@@ -20,7 +20,8 @@ depuis le navigateur, sans rien installer sur le poste.
 - **`demarrage.sh`**, à chaque démarrage et à chaque réveil : si le projet a un
   `docker-compose.yml`, attend le démon Docker, lance `docker compose up -d --wait`
   (conteneur `catalogue-postgres`, `127.0.0.1:5433`), puis `scripts/bases-locales.ts`, qui
-  crée les bases `_dev` et `_test` manquantes et affiche la ligne `DATABASE_URL`.
+  crée les bases `_dev` et `_test` manquantes et donne la commande `--env-local` qui
+  prépare `.env.local`, à taper soi-même.
 - **Docker dans le conteneur** (feature `docker-in-docker`), pas celui de l'hôte : le port
   `127.0.0.1:5433` est alors celui du conteneur, là où les tests et `.env.local` le
   cherchent, et `docker exec catalogue-postgres …` marche comme sur un poste.

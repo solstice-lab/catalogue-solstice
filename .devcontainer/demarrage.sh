@@ -18,7 +18,7 @@ done
 
 docker compose up -d --wait
 
-# Crée les bases _dev et _test du projet si elles manquent, et affiche la
-# ligne DATABASE_URL à mettre dans .env.local : il ne l'écrit pas, c'est à la
-# personne de la coller.
+# Crée les bases _dev et _test du projet si elles manquent, et donne la
+# commande qui prépare .env.local (--env-local), que la personne tape
+# elle-même : ce script ne l'écrit pas.
 npx tsx scripts/bases-locales.ts

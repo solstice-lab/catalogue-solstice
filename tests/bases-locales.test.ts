@@ -40,7 +40,7 @@ describe("noms des bases locales", () => {
     expect(() => nomsDesBases("2026-appli")).toThrow(/lettre/);
   });
 
-  it("donne à coller la base _dev, jamais celle des tests (les tests y écrivent et y effacent : les données de dev n'y survivraient pas)", () => {
+  it("donne à vérifier dans un .env.local existant la base _dev, jamais celle des tests (les tests y écrivent et y effacent : les données de dev n'y survivraient pas)", () => {
     const ligne = ligneEnvLocal(nomsDesBases("mon-appli"), 5433);
     expect(ligne).toBe("DATABASE_URL=postgresql://postgres@localhost:5433/mon_appli_dev");
   });
@@ -57,6 +57,9 @@ describe("commandes des tests affichées", () => {
     const lignes = commandesDesTests(url, "win32").join("\n");
     expect(lignes).toContain(`$env:DATABASE_URL = '${url}'`);
     expect(lignes).not.toContain(`DATABASE_URL=${url} `);
+    // Restées posées, un `npm run dev` lancé ensuite dans la même fenêtre
+    // viserait la base des tests, que chaque lancement vide.
+    expect(lignes).toContain("Remove-Item Env:DATABASE_URL, Env:PGSSLMODE");
   });
 
   it("sous Linux (Codespaces) et macOS, ne donne que celles de bash", () => {
@@ -170,6 +173,27 @@ describe("préparation de .env.local (--env-local)", () => {
       /Rename-Item \.env\.local \.env\.local\.ancien/
     );
     expect(lire(windows)).toBe(existant);
+  });
+
+  it("refuse l'adresse d'exemple recopiée telle quelle depuis la consigne", () => {
+    const dossier = dossierAvec(AVEC_COMPTES);
+    expect(() => preparer(dossier, "votre.adresse@exemple.fr")).toThrow(/exemple/);
+    expect(fs.existsSync(path.join(dossier, ".env.local"))).toBe(false);
+  });
+
+  it("ajoute une variable que le modèle a perdue plutôt que de la dire posée sans l'écrire", () => {
+    const dossier = dossierAvec(
+      AVEC_COMPTES.replace("COMPTES_PREMIER_ADMIN=\n", "").replace("PGSSLMODE=disable\n", "")
+    );
+    preparer(dossier, "admin@exemple.fr");
+    const env = lire(dossier);
+    expect(valeur(env, "COMPTES_PREMIER_ADMIN")).toBe("admin@exemple.fr");
+    expect(valeur(env, "PGSSLMODE")).toBe("disable");
+  });
+
+  it("devant un .env.local existant, cite aussi le secret et le premier admin à vérifier avec la brique comptes", () => {
+    const dossier = dossierAvec(AVEC_COMPTES, "DATABASE_URL=\n");
+    expect(() => preparer(dossier, "admin@exemple.fr")).toThrow(/AUTH_SECRET[\s\S]*COMPTES_PREMIER_ADMIN/);
   });
 
   it("refuse sans .env.example, lancé hors de la racine de l'appli", () => {
