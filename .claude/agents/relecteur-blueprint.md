@@ -204,7 +204,10 @@ sortie, de fiche et d'identité git ne se voient pas dans la blueprint.
 - Les neuf sections, dans l'ordre, et un titre `# Blueprint : <nom>` suivi du paragraphe qui
   dit à quel commit la blueprint se rapporte.
 - Section 1 : à qui sert l'appli, ce qu'elle remplace, **un cas test d'origine entre
-  guillemets** (la phrase du client), des volumes.
+  guillemets** (la phrase du client), des volumes. Après un cadrage court
+  (`statut:` qui finit par « , cadrage court »), ce qu'elle remplace et les volumes peuvent
+  être une question ouverte de la section 8, avant le ticket du module : c'est attendu, et
+  n'est un constat que si la question manque en section 8.
 - Section 2 : pour chaque entité, sens, champs, clé métier, unicité, suppression, le dossier
   qu'elle aura sous `src/app/` et son fichier de `src/lib/db/`, et son ticket en section 9.
 - Section 3 : une ligne par brique de `briques_assemblees`, installée non branchée comprise
