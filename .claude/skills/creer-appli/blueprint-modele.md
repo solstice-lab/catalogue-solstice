@@ -40,7 +40,7 @@ entree: <ferme | ouverte>                          # avec la brique comptes seul
 role_par_defaut: <rôle de qui entre sans rôle attribué, jamais un rôle d'administration>
 methodes: [<code-email, lien-email, google, microsoft>]        # « demo » : jamais listée ; l'assembleur la garde, un ticket la retire
 personnes_par_reseau: <combien de personnes au plus se connectent dans la même heure depuis un même réseau>
-statut: <écrite avant tout code, brouillon validé par <qui> le <date>>
+statut: <écrite avant tout code, brouillon validé par <qui> le <date>, suivi de « , cadrage court » s'il y a lieu>
 commit_reference: <à renseigner : l'assembleur le remplace>
 briques_assemblees: [<briques du profil, puis celles de --briques, plus rgpd avec comptes>]
 entites:
@@ -171,6 +171,8 @@ la description, puis :
 
 1. **Intention** : à qui sert l'appli, ce qu'elle remplace aujourd'hui, un cas test
    d'origine entre guillemets (la phrase du client), volumes. Source : la fiche projet.
+   Après un cadrage court (`cadrage-court.md`), ce qu'elle remplace et les volumes peuvent
+   être une question ouverte de la section 8, avant le ticket du module.
 2. **Entités** : une sous-section par entité, avec son sens, ses champs en clair, sa clé
    métier, ses règles d'unicité et de suppression, et le module qui la portera : le
    dossier sous `src/app/` et le fichier de `src/lib/db/` que l'appli créera en copiant le

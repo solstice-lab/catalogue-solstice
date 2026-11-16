@@ -205,7 +205,7 @@ sortie, de fiche et d'identité git ne se voient pas dans la blueprint.
   dit à quel commit la blueprint se rapporte.
 - Section 1 : à qui sert l'appli, ce qu'elle remplace, **un cas test d'origine entre
   guillemets** (la phrase du client), des volumes. Après un cadrage court
-  (`.claude/skills/creer-appli/cadrage-court.md`), ce qu'elle remplace et les volumes peuvent
+  (`statut:` qui finit par « , cadrage court »), ce qu'elle remplace et les volumes peuvent
   être une question ouverte de la section 8, avant le ticket du module : c'est attendu, et
   n'est un constat que si la question manque en section 8.
 - Section 2 : pour chaque entité, sens, champs, clé métier, unicité, suppression, le dossier

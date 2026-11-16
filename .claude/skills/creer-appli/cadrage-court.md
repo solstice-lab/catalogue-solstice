@@ -37,8 +37,8 @@ aux trois.
 - Des données de santé, d'opinion ou d'une autre catégorie particulière du RGPD, ou des
   documents de clients : poser en entier le bloc « Les données » de `solstice-nouvelle-appli`
   §1.
-- Un partage avec une personne extérieure sans compte : poser en entier le bloc « Les
-  accès ».
+- Un partage avec une personne extérieure sans compte, ou une appli ouverte à toute adresse
+  (inscription libre) : poser en entier le bloc « Les accès ».
 - Des données à garder sans connexion (hors formulaire de contact) : aucun profil ne le
   donne. Revenir avec la personne au profil de départ (étape 1 de `SKILL.md`).
 
@@ -49,8 +49,9 @@ restent.
 
 Chacune se note dans la fiche, rubrique de `solstice-nouvelle-appli` §3, avec « (par
 défaut) ». Une échéance dans la dernière colonne fait de la ligne une question ouverte de la
-fiche (qui tranche : le client ; avant cette échéance), reprise en section 8 de la blueprint
-et portée par le ticket de la section 9 qui la règle.
+fiche (qui tranche : le client, sauf l'hébergement, que tranche la personne qui mène le projet ;
+avant cette échéance), reprise en section 8 de la blueprint et portée par le ticket de la
+section 9 que la ligne nomme, ou à défaut par celui qui remplit le fichier en cause.
 
 | Sujet | Par défaut | À revoir avant |
 | --- | --- | --- |
@@ -64,11 +65,11 @@ et portée par le ticket de la section 9 qui la règle.
 | Auteur d'une proposition (avec `validation`) | Peut la décider, avec mention visible dans la file | |
 | Import (avec `import-lot`) | Relu avant d'être enregistré, fichier d'origine gardé | |
 | Hébergement | Render, avec la brique `deploiement` (le défaut de l'étape 1) ; comptes Render et Resend au nom du client | la mise en ligne |
-| Domaine d'envoi Resend (avec `mails`) | Aucun vérifié : `COMPTES_PREMIER_ADMIN` est l'adresse du propriétaire du compte Resend, seul à recevoir son code de connexion | le premier collègue invité |
-| Mentions légales | Éditeur professionnel quand la demande vient d'une entreprise, d'une association ou d'un indépendant ; sinon le statut est « à demander », sans défaut. Éditeur, directeur de la publication, forme juridique, immatriculation « à demander » ; hébergeur Render Services, Inc., adresse et téléphone à relever sur la facture ou le DPA du compte | la mise en ligne publique, ou le premier utilisateur réel d'une instance de recette |
-| Confidentialité | Rien de proposé (étape 1 de `SKILL.md`) : courriel des droits, délégué, autorité de contrôle, bases légales, durées (celles des briques « à valider »), destinataires, et les données de la réponse 1 comme traitement du projet, tous « à faire valider » | le premier utilisateur réel ; vitrine : la mise en ligne publique |
+| Domaine d'envoi Resend (avec `mails`) | Aucun vérifié : `COMPTES_PREMIER_ADMIN` est l'adresse du propriétaire du compte Resend, seul à recevoir son code de connexion | le premier collègue invité (ticket de mise en ligne) |
+| Mentions légales | Éditeur professionnel quand la demande vient d'une entreprise, d'une association ou d'un indépendant pour son activité ; sinon le statut est « à demander », sans défaut. Éditeur, directeur de la publication, forme juridique, immatriculation « à demander » ; hébergeur Render Services, Inc., adresse et téléphone à relever sur la facture ou le DPA du compte | la mise en ligne publique, ou le premier utilisateur réel d'une instance de recette |
+| Confidentialité | Rien de proposé, hors les durées que les briques déclarent, affichées « à valider » (étape 1 de `SKILL.md`) : courriel des droits, délégué, autorité de contrôle, bases légales, durées, destinataires, et les données de la réponse 1 comme traitement du projet, tous « à faire valider » | le premier utilisateur réel ; vitrine : la mise en ligne publique |
 | Entretien après livraison | Personne de nommé : Dependabot retiré (pas de `--dependabot`) | |
-| Référencement | `site: ferme`, vitrine comprise : son passage en public suit le ticket des mentions légales. Description : une phrase tirée de la réponse 1. Pages publiques : aucune, ou pour une vitrine celles de la réponse 1 | vitrine : la mise en ligne publique |
+| Référencement | `site: ferme`, vitrine comprise : son passage en `site: public` (`sitePublic` de `src/lib/referencement.ts`) est un ticket de la section 9, bloqué par celui des mentions légales. Description : une phrase tirée de la réponse 1. Pages publiques : aucune, ou pour une vitrine celles de la réponse 1 | |
 | Bandeau « instance de recette » | Proposé dans le message de validation, un ticket de plus s'il est accepté | |
 | Outil actuel, volumes, vrai exemple de la donnée | Pas demandés | le ticket du module : il ne se conçoit pas sans |
 | Pas en v1 | Tout ce que la réponse 1 ne nomme pas | |
@@ -76,9 +77,10 @@ et portée par le ticket de la section 9 qui la règle.
 **La durée de conservation** des données personnelles ordinaires (le nom, l'e-mail, le
 téléphone d'un contact) se décide d'entrée au cadrage complet (`solstice-nouvelle-appli` §1).
 Ici, elle est reportée au ticket de la confidentialité, comme le reste de la ligne : le client
-la valide, aucune durée n'est proposée. D'ici là l'appli est une **instance de recette** :
-fermée aux moteurs, sans vrai membre ni donnée réelle d'une personne
-(`solstice-nouvelle-appli` §1), et les données réelles du client restent hors du dépôt.
+la valide, aucune durée n'est proposée. D'ici là l'appli est une **instance de recette**,
+fermée aux moteurs et sans vrai membre (`solstice-nouvelle-appli` §1). Le cadrage court y
+ajoute une règle : aucune donnée réelle d'une personne n'y est saisie avant ce ticket, faute
+de durée validée. Les données réelles du client restent hors du dépôt.
 
 ## Le message de validation
 
@@ -95,5 +97,6 @@ Un seul message, qui vaut la validation de la fiche (étape 1) et celle du choix
    re-présente avec les lignes changées, jusqu'au oui.
 
 Validé, le cadrage reprend à l'étape 3 de `SKILL.md`. La blueprint reprend les valeurs par
-défaut telles quelles : ce que l'appli remplace et ses volumes sont, en section 1, une
+défaut telles quelles, et son `statut:` finit par « , cadrage court » : le relecteur de
+blueprint ne lit qu'elle. Ce que l'appli remplace et ses volumes y sont, en section 1, une
 question ouverte de la section 8, avant le ticket du module.
