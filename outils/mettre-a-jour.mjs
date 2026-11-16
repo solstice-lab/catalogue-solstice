@@ -2792,7 +2792,7 @@ function rubriqueDesAjoutsLourds(resultat) {
       "",
       "- Décision du client : créer la base chez l'hébergeur, un service payant, dans l'Union européenne.",
       `- Déclarer ${code("DATABASE_URL")} chez l'hébergeur avant la fusion : sans elle, la première requête échoue.`,
-      `- En local : ${code("docker compose up -d --wait")}, puis ${code("npx tsx scripts/bases-locales.ts")}, qui crée les bases de développement et de test et donne la ligne ${code("DATABASE_URL")} de ${code(".env.local")}. Les tests de l'appli exigent désormais leur base de test (son ${code("CLAUDE.md")}, §6).`,
+      `- En local : ${code("docker compose up -d --wait")}, puis ${code("npx tsx scripts/bases-locales.ts")}, qui crée les bases de développement et de test ; avec ${code("--env-local")} (et ${code("--admin=<adresse>")} avec la brique comptes), tapé par l'humain, il crée aussi ${code(".env.local")}. Les tests de l'appli exigent désormais leur base de test (son ${code("CLAUDE.md")}, §6).`,
       ""
     );
   }

@@ -1543,7 +1543,7 @@ function main(argv) {
   // « une base locale jetable » sans dire comment l'obtenir. Sans la brique données, l'appli n'a pas de base à créer.
   const avecBase = !resultat.retires.includes(`brique ${BASE}`);
   const ensuite = avecBase
-    ? "puis npm ci, les bases locales (docker compose up -d --wait, puis npx tsx scripts/bases-locales.ts) et les vérifications de CLAUDE.md §6."
+    ? "puis npm ci, les bases locales et .env.local (docker compose up -d --wait, puis npx tsx scripts/bases-locales.ts --env-local, à taper par l'humain, avec --admin=<adresse> si la brique comptes est gardée) et les vérifications de CLAUDE.md §6."
     : "puis npm ci et les vérifications de CLAUDE.md §6 (sans base : npm test seul).";
   console.log(
     `Suite : dépôt git local créé (branche main, un commit ${commitInitial}), aucun remote, rien n'est poussé ; ${ensuite}`

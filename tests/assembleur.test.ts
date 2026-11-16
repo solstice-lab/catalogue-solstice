@@ -2575,7 +2575,7 @@ describe("versionnement de l'appli assemblée", () => {
       expect(resultat.status).toBe(0);
       const suite = resultat.stdout.split("\n").find((ligne) => ligne.startsWith("Suite : "));
       expect(suite).toContain("docker compose up -d --wait");
-      expect(suite).toContain("npx tsx scripts/bases-locales.ts");
+      expect(suite).toContain("npx tsx scripts/bases-locales.ts --env-local");
     }
   );
 

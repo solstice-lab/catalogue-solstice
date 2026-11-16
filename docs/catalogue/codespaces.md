@@ -20,7 +20,8 @@ depuis le navigateur, sans rien installer sur le poste.
 - **`demarrage.sh`**, à chaque démarrage et à chaque réveil : si le projet a un
   `docker-compose.yml`, attend le démon Docker, lance `docker compose up -d --wait`
   (conteneur `catalogue-postgres`, `127.0.0.1:5433`), puis `scripts/bases-locales.ts`, qui
-  crée les bases `_dev` et `_test` manquantes et affiche la ligne `DATABASE_URL`.
+  crée les bases `_dev` et `_test` manquantes et donne la commande `--env-local` qui
+  prépare `.env.local`, à taper soi-même.
 - **Docker dans le conteneur** (feature `docker-in-docker`), pas celui de l'hôte : le port
   `127.0.0.1:5433` est alors celui du conteneur, là où les tests et `.env.local` le
   cherchent, et `docker exec catalogue-postgres …` marche comme sur un poste.
@@ -159,13 +160,13 @@ cd ../essai-base && npm ci
 ```
 
 ```bash
-npx tsx scripts/bases-locales.ts
+npx tsx scripts/bases-locales.ts --env-local
 ```
 
 Doit afficher `essai_base_dev` et `essai_base_test` « créée » (Postgres tourne déjà :
-c'est celui du catalogue, partagé), puis la ligne `DATABASE_URL`. Copier `.env.example` en
-`.env.local` et y remplacer la ligne `DATABASE_URL` par celle affichée (dans l'éditeur :
-clic droit sur `.env.example`, **Copy**, **Paste**, renommer), puis :
+c'est celui du catalogue, partagé), puis `.env.local : créé depuis .env.example`, qui vise
+`essai_base_dev` (sans la brique `comptes`, pas d'adresse à donner), et la commande des
+tests en bash seulement. Puis :
 
 ```bash
 npm run dev
@@ -206,8 +207,10 @@ blueprint, l'assemblage.
 
    puis relancer `claude` **depuis ce même terminal** et reprendre l'étape. Noter le
    message exact.
-3. Suivre les commandes que donne la skill : bases locales (Postgres tourne déjà, la
-   commande `docker compose up` doit répondre tout de suite), `.env.local`, `npm run dev`.
+3. Suivre les commandes que donne la skill : Postgres (il tourne déjà, la commande
+   `docker compose up` doit répondre tout de suite), puis une seule commande pour les bases
+   locales et `.env.local`, avec l'adresse du premier admin
+   (`npx tsx scripts/bases-locales.ts --env-local --admin=<adresse>`), puis `npm run dev`.
    Ouvrir l'appli par le port 3000.
 4. Se connecter : le code de connexion s'affiche dans le terminal du serveur
    (`MAILS_FOURNISSEUR=console`). La connexion doit réussir.

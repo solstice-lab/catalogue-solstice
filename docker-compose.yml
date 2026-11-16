@@ -1,6 +1,6 @@
 # Postgres local du poste : `docker compose up -d --wait`, puis
-# `npx tsx scripts/bases-locales.ts` crée les bases de l'appli et affiche la
-# ligne DATABASE_URL à coller dans .env.local.
+# `npx tsx scripts/bases-locales.ts` crée les bases de l'appli ; avec
+# --env-local, tapé par la personne, il crée aussi .env.local.
 #
 # Un seul Postgres par poste, partagé par le catalogue et toutes les applis
 # qu'il assemble : chacune y a ses bases <appli>_dev et <appli>_test. D'où un

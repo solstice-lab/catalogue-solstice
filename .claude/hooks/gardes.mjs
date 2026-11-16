@@ -42,6 +42,8 @@ const REFUS = {
   fusion:
     "La fusion d'une pull request revient à la personne responsable des fusions : fusionner, c'est mettre en ligne. Pas plus par l'API que par gh pr merge.",
   env: "Un .env (ou .envrc, .npmrc) porte des secrets : Claude ne l'écrit pas, par une commande pas plus que par Write. Le modèle des variables va dans .env.example, les valeurs chez l'hébergeur ; l'humain écrit le fichier local.",
+  envLocal:
+    "--env-local fait écrire .env.local par le script des bases locales : Claude n'écrit pas un .env, même par un script. Donner la commande à l'humain, qui la tape lui-même.",
   imbrication: "Commande trop imbriquée pour que le garde la lise : la lancer sans détour.",
 };
 const refus = (cle) => ["deny", REFUS[cle]];
@@ -694,6 +696,9 @@ function regles(m, entiere) {
   const a = m.map((x) => x.nu);
   const o = nomOutil(a[0]);
   if (!LECTEURS.has(o) && a.some((x) => x === "--confirmer" || x.startsWith("--confirmer="))) return refus("confirmer");
+  // Le script écrit .env.local à la place de Claude : le lancer serait le
+  // détour de la règle « env », que Write et les redirections tiennent déjà.
+  if (!LECTEURS.has(o) && a.some((x) => x === "--env-local" || x.startsWith("--env-local="))) return refus("envLocal");
   const git = analyseGit(a);
   if (git && gitAddForce(git)) return refus("add");
   if (git && gitPushForce(git)) return refus("push");

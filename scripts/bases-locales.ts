@@ -1,13 +1,20 @@
 /*
  * Crée les bases locales de l'appli, <appli>_dev et <appli>_test, dans le
- * Postgres du docker-compose.yml, si elles manquent, puis affiche la ligne
- * DATABASE_URL à coller dans .env.local et la commande des tests.
+ * Postgres du docker-compose.yml, si elles manquent, puis dit comment
+ * préparer .env.local et donne la commande des tests, dans le shell du poste.
  *
  *   docker compose up -d --wait
  *   npx tsx scripts/bases-locales.ts [--conteneur=<nom>]
+ *   npx tsx scripts/bases-locales.ts --env-local [--admin=<adresse>]
  *
- * Il n'écrit pas .env.local : les gardes de Claude refusent d'écrire un
- * .env*, c'est la personne qui colle la ligne.
+ * --env-local crée en plus .env.local pour le travail local, sans jamais
+ * écraser un .env.local existant (preparerEnvLocal, lib/bases-locales.ts) ;
+ * --admin, l'adresse du premier admin, est exigée quand une brique l'attend
+ * (comptes). La personne la tape elle-même : les gardes de Claude refusent
+ * d'écrire un .env*, et refusent --env-local pour la même raison. Une option
+ * plutôt qu'un script à part : une seule commande crée les bases et le
+ * fichier qui les vise, avec le port que lit ce script, et elle part avec la
+ * base d'une appli qui n'en a pas, comme ce script.
  *
  * Pas de dry-run ni de --confirmer, à la différence des scripts de données
  * (scripts/lib/cli.ts) : il ne joint Postgres que par `docker exec` sur un
@@ -22,8 +29,16 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { argumentTexte } from "./lib/cli";
-import { ligneEnvLocal, nomsDesBases, urlLocale } from "./lib/bases-locales";
+import { argumentTexte, drapeauPresent } from "./lib/cli";
+import {
+  commandesDesTests,
+  exigeAdmin,
+  lignesAVerifier,
+  variablesLocales,
+  nomsDesBases,
+  preparerEnvLocal,
+  urlLocale,
+} from "./lib/bases-locales";
 
 const CONTENEUR_PAR_DEFAUT = "catalogue-postgres";
 const PORT_PAR_DEFAUT = 5433;
@@ -46,6 +61,10 @@ function portPublie(conteneur: string): number {
 
 function principal(): void {
   const conteneur = argumentTexte("conteneur") ?? CONTENEUR_PAR_DEFAUT;
+  // --admin seul ne crée rien : le taire laisserait croire le premier admin posé.
+  if (argumentTexte("admin") !== null && !drapeauPresent("env-local")) {
+    throw new Error("--admin ne sert qu'avec --env-local, qui crée .env.local : ajouter --env-local.");
+  }
   const cheminPaquet = path.join(process.cwd(), "package.json");
   if (!fs.existsSync(cheminPaquet)) {
     throw new Error("package.json introuvable : lancer ce script depuis la racine du projet.");
@@ -85,30 +104,35 @@ function principal(): void {
   }
 
   const port = portPublie(conteneur);
-  const urlTest = urlLocale(bases.test, port);
-  console.log(
-    [
-      "",
-      "À coller dans .env.local (le script ne l'écrit pas) :",
-      "",
-      ligneEnvLocal(bases, port),
-      "PGSSLMODE=disable",
-      "",
-      "Tests, PowerShell :",
-      "",
-      `$env:DATABASE_URL = '${urlTest}'`,
-      "$env:PGSSLMODE = 'disable'",
-      "npm test",
-      "",
-      "Tests, bash :",
-      "",
-      `DATABASE_URL=${urlTest} PGSSLMODE=disable npm test`,
-    ].join("\n")
-  );
+  const dossier = process.cwd();
+  let envLocal: string[];
+  if (drapeauPresent("env-local")) {
+    envLocal = preparerEnvLocal({
+      dossier,
+      bases,
+      port,
+      adresseAdmin: argumentTexte("admin"),
+      plateforme: process.platform,
+    });
+  } else {
+    const modele = path.join(dossier, ".env.example");
+    const texte = fs.existsSync(modele) ? fs.readFileSync(modele, "utf-8") : "";
+    const admin = exigeAdmin(texte);
+    envLocal = fs.existsSync(path.join(dossier, ".env.local"))
+      ? [".env.local existe déjà.", ...lignesAVerifier(bases, port, variablesLocales(texte))]
+      : [
+          "Pour créer .env.local, une commande à taper soi-même (Claude n'écrit pas ce fichier) :",
+          "",
+          `npx tsx scripts/bases-locales.ts --env-local${admin ? " --admin=votre.adresse@exemple.fr" : ""}`,
+          ...(admin ? ["", "L'adresse est celle du premier admin : sans elle, personne n'entre en local."] : []),
+        ];
+  }
+  console.log(["", ...envLocal, "", ...commandesDesTests(urlLocale(bases.test, port), process.platform)].join("\n"));
 }
 
 // Une erreur attendue (lancé hors de la racine du projet, nom de paquet
-// refusé, createdb qui échoue) s'affiche en une phrase, pas en pile Node.
+// refusé, createdb qui échoue, .env.local déjà là) s'affiche en clair, pas en
+// pile Node.
 try {
   principal();
 } catch (erreur) {

@@ -630,7 +630,7 @@ commandes de la base locale. Sans elle, les étapes 2 et 3 n'ont pas lieu.
    À l'essai du 2026-10-21, un script de données lancé avec `--confirmer` depuis un autre
    dossier n'a signalé aucune erreur, et la base de l'appli est restée vide.
 
-2. **Avec la base**, les bases locales (skill `solstice-donnees`, « Tests et base
+2. **Avec la base**, le Postgres local (skill `solstice-donnees`, « Tests et base
    locale ») :
 
    ```powershell
@@ -648,52 +648,32 @@ commandes de la base locale. Sans elle, les étapes 2 et 3 n'ont pas lieu.
    Un autre Postgres déjà publié sur le 5433 fait échouer `docker compose up` : l'arrêter
    d'abord.
 
+3. **Avec la base**, les bases locales et `.env.local`, en une commande, la même sous
+   PowerShell et sous bash. L'humain la tape : les gardes refusent à Claude d'écrire un
+   `.env*`, et `--env-local` pour la même raison. Avec la brique `comptes`, Claude demande
+   d'abord l'adresse avec laquelle la personne se connectera en local : elle devient le
+   premier admin (`COMPTES_PREMIER_ADMIN`), sans elle personne n'entre, et la commande
+   refuse de s'en passer. Le code de connexion s'y lira dans le terminal du serveur
+   (étape 5), l'adresse n'a donc pas à recevoir de courriel.
+
    ```powershell
-   npx tsx scripts/bases-locales.ts
+   npx tsx scripts/bases-locales.ts --env-local --admin=<adresse du premier admin>
    ```
+
+   Sans la brique `comptes`, la même sans `--admin=…`.
 
    Sa sortie est sa vérification : deux lignes `<appli>_dev` et `<appli>_test`, chacune
-   « créée » ou « existe déjà », puis la ligne `DATABASE_URL=…_dev` à mettre dans
-   `.env.local`. `<appli>` est le nom de `package.json`, tirets changés en `_` : l'assembleur l'a
-   tiré du champ `appli:` de la blueprint, chaque appli du poste a donc ses propres bases.
-   `_test` est jetable (les tests la vident), `_dev` sert à l'appli et à ses scripts de
-   données.
+   « créée » ou « existe déjà », puis `.env.local : créé depuis .env.example`, la base
+   `<appli>_dev` qu'il vise et, avec `comptes`, `AUTH_SECRET` tiré au hasard (non affiché)
+   et l'adresse du premier admin. `<appli>` est le nom de `package.json`, tirets changés en
+   `_` : l'assembleur l'a tiré du champ `appli:` de la blueprint, chaque appli du poste a
+   donc ses propres bases. `_test` est jetable (les tests la vident), `_dev` sert à l'appli
+   et à ses scripts de données. Les valeurs sont locales seulement : rien de ce fichier ne
+   se recopie chez l'hébergeur.
 
-3. **Avec la base**, `.env.local`, copie de `.env.example` dont la ligne `DATABASE_URL`
-   vise la base `_dev`. Les gardes interdisent à Claude d'écrire un `.env*` : l'humain le
-   tape. `[IO.File]::WriteAllText` écrit sans BOM ; `Set-Content` et `Out-File` de
-   PowerShell 5.1 ne le garantissent pas :
-
-   ```powershell
-   [IO.File]::WriteAllText("$PWD\.env.local", ([IO.File]::ReadAllText("$PWD\.env.example") -replace '(?m)^DATABASE_URL=[^\r\n]*', '<ligne DATABASE_URL affichée par bases-locales>'))
-   ```
-
-   Avec la brique `comptes`, l'humain remplit aussi `AUTH_SECRET` : sans lui, aucune
-   connexion ne s'ouvre. La commande remplace la ligne vide de `.env.local` par un secret
-   tiré au hasard, sans qu'il passe par Claude :
-
-   ```powershell
-   [IO.File]::WriteAllText("$PWD\.env.local", ([IO.File]::ReadAllText("$PWD\.env.local") -replace '(?m)^AUTH_SECRET=[^\r\n]*', ("AUTH_SECRET=" + (node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"))))
-   ```
-
-   Vérifier, doit afficher `True` (sans montrer le secret) :
-
-   ```powershell
-   (Select-String -Path .env.local -Pattern '^AUTH_SECRET=.{32,}$').Count -eq 1
-   ```
-
-   Vérifier, doit afficher une seule ligne, qui finit par `_dev` :
-
-   ```powershell
-   Select-String -Path .env.local -Pattern '^DATABASE_URL='
-   ```
-
-   Vérifier, doit afficher `35` (le `#` de la première ligne ; `239` est un BOM, réécrire le
-   fichier par la commande ci-dessus) :
-
-   ```powershell
-   [IO.File]::ReadAllBytes("$PWD\.env.local")[0]
-   ```
+   Si la sortie dit `.env.local existe déjà`, la commande n'a rien écrit : elle n'écrase
+   jamais ce fichier. Pour repartir du modèle, le renommer comme elle l'indique, relancer
+   la commande, puis reprendre dans le nouveau fichier les valeurs de l'ancien à garder.
 
 4. **Installer et vérifier** (le `CLAUDE.md` du dossier, §6). Claude peut les lancer lui-même
    dans ce dossier, avec une base locale libre ; sinon il les donne. Rouge : le rapporter tel
@@ -780,8 +760,8 @@ la production**, et l'assembleur la garde même si `methodes:` ne la liste pas :
 `"demo"` de `METHODES` (`src/config/comptes.ts`) est la **première PR fusionnée**, avant la
 création du Blueprint, qui déploie `main` : sinon le déploiement échoue. L'étape de mise en
 ligne de la section 9 en dépend (« Bloqué par »), et le retrait la retire aussi en local : la
-connexion locale passe alors par la méthode déclarée, le code lu dans le terminal du serveur ; `COMPTES_PREMIER_ADMIN` se déclare
-chez l'hébergeur ; `IP_EN_TETE_CLIENT` aussi, hors Render (`render.yaml` la règle) : avec le
+connexion locale passe alors par la méthode déclarée, le code lu dans le terminal du serveur ; `COMPTES_PREMIER_ADMIN`, posé
+en local à l'étape 3, se déclare aussi chez l'hébergeur ; `IP_EN_TETE_CLIENT` aussi, hors Render (`render.yaml` la règle) : avec le
 code ou le lien, sans elle, le déploiement échoue. Si le client veut se connecter avec Google (Workspace ou Gmail) :
 créer son application OAuth, déclarer `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`,
 ajouter `"google"` à `METHODES` (déjà fait si la blueprint le déclare) et, pour un client Workspace, ses domaines à
@@ -829,37 +809,11 @@ Vérifier, doit afficher `oui` :
 test -f blueprint.md && echo oui || echo non
 ```
 
-**Étape 3.** `.env.local`, copie de `.env.example` dont la ligne `DATABASE_URL` vise la base
-`_dev` :
+**Étape 3.** La même commande qu'en 5.3, avec la même sortie ; seul le renommage d'un
+`.env.local` existant, que la sortie donne alors, s'écrit `mv .env.local .env.local.ancien`.
 
 ```bash
-sed 's|^DATABASE_URL=.*|<ligne DATABASE_URL affichée par bases-locales>|' .env.example > .env.local
-```
-
-Avec la brique `comptes`, `AUTH_SECRET`. `-i.bak` vaut sous macOS comme sous Linux, `sed -i`
-seul n'y a pas le même sens :
-
-```bash
-secret=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"); sed -i.bak "s|^AUTH_SECRET=.*|AUTH_SECRET=$secret|" .env.local && rm .env.local.bak; unset secret
-```
-
-Vérifier, doit afficher `1` (sans montrer le secret) :
-
-```bash
-grep -cE '^AUTH_SECRET=.{32,}$' .env.local
-```
-
-Vérifier, doit afficher une seule ligne, qui finit par `_dev` :
-
-```bash
-grep '^DATABASE_URL=' .env.local
-```
-
-Vérifier, doit afficher `35`, précédé d'espaces (`239` est un BOM, laissé par un éditeur :
-réécrire le fichier par les commandes ci-dessus) :
-
-```bash
-head -c 1 .env.local | od -An -tu1
+npx tsx scripts/bases-locales.ts --env-local --admin=<adresse du premier admin>
 ```
 
 **Étape 4.** Les tests avec la base, variables posées pour cette seule commande :
@@ -884,8 +838,8 @@ curl -s http://localhost:3000/sante
 Doit afficher, avec la base, `{"commit":"inconnu","base":"ok"}` (sans la base, `base` à
 `"non-configuree"`), avec les mêmes écarts possibles qu'en 5.3.
 
-Ces commandes ont été essayées sous Git Bash (sed GNU) sur des fichiers d'essai, pas encore
-sur un poste macOS (sed BSD) ou Linux : un écart se rapporte tel quel, comme en 5.3.
+Ces commandes ont été essayées sous Git Bash, pas encore sur un poste macOS ou Linux : un
+écart se rapporte tel quel, comme en 5.3.
 
 ## 6. Les tickets de la section 9
 

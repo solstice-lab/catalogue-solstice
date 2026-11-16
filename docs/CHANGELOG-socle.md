@@ -167,3 +167,28 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
 - **Pourquoi** : essai du 2026-11-13 : le proxy du Codespace transmet
   l'origine `localhost:3000` et l'hôte redirigé en `x-forwarded-host` ; Next
   refusait toute Server Action, la connexion comprise.
+
+## 2026-11-16 · `.env.local` se prépare en une commande · Ajout
+
+- **Ce qui change** : `npx tsx scripts/bases-locales.ts --env-local` crée
+  `.env.local` depuis `.env.example`, avec les seules valeurs du travail
+  local : `DATABASE_URL` sur la base `<appli>_dev` et, avec la brique
+  `comptes`, un `AUTH_SECRET` tiré au hasard et `COMPTES_PREMIER_ADMIN`, donné
+  par `--admin=<adresse>` (exigé avec `comptes`). Ce qu'il remplit au-delà
+  de la base, une brique le déclare dans son bloc de `.env.example`, par une
+  ligne `# --env-local : valeur tirée au hasard` ou `# --env-local : adresse
+  donnée par --admin` juste au-dessus de la variable. Il n'écrase jamais un
+  `.env.local` existant et dit comment repartir du modèle. Sans l'option, le
+  script donne cette commande au lieu de la ligne `DATABASE_URL` à coller. Il
+  n'affiche plus que les commandes de test du système en cours (PowerShell
+  sous Windows, bash ailleurs). Les gardes de Claude refusent `--env-local`,
+  comme l'écriture de tout `.env*` : la personne tape la commande.
+- **Pour l'appli** : rien à changer. Un `.env.local` déjà préparé reste tel
+  quel.
+- **Pourquoi** : essai de bout en bout du 2026-11-13 au 2026-11-16 dans GitHub
+  Codespaces : préparer `.env.local` à la main (copier le modèle, coller
+  `DATABASE_URL`, générer `AUTH_SECRET`, ajouter `COMPTES_PREMIER_ADMIN`, que
+  les consignes oubliaient) a été le geste le plus technique, et les
+  commandes proposées à la place étaient illisibles pour une personne non
+  développeuse. Sous Linux, le script affichait d'abord des commandes
+  PowerShell.

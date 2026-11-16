@@ -1024,7 +1024,9 @@ La connexion par code, comme celle par lien, envoie par la brique mails : ses va
 l'hébergeur, voir son README. L'en-tête de l'adresse IP : voir « La connexion
 par code envoyé par e-mail ».
 
-En local, générer le secret sous PowerShell, puis le copier dans `.env.local` :
+En local, `npx tsx scripts/bases-locales.ts --env-local --admin=<adresse>` le tire au
+hasard en créant `.env.local`, avec le premier admin. Pour le générer à part (PowerShell
+comme bash), puis le copier dans `.env.local` :
 
 ```
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
