@@ -60,30 +60,22 @@ et macOS) : tant que `docker info` échoue, `docker compose up` échoue aussi. `
 `127.0.0.1:5433`, sans mot de passe (`trust`, publié sur le poste seulement),
 partagé par toutes les applis du poste ; ses données vivent dans le volume
 `solstice-postgres-donnees`. `scripts/bases-locales.ts` crée `<appli>_dev` et
-`<appli>_test` (nom de `package.json`) s'ils manquent, puis affiche la ligne
-`DATABASE_URL` à mettre dans `.env.local` et la commande des tests : il ne
-l'écrit pas, c'est à coller. `npm test` fait tourner les fichiers de tests en
+`<appli>_test` (nom de `package.json`) s'ils manquent, puis donne la commande
+des tests dans le shell du poste. Avec `--env-local`, tapé par la personne (les
+gardes le refusent à Claude), il crée aussi `.env.local` depuis `.env.example` :
+la base `_dev` et, avec la brique `comptes`, un `AUTH_SECRET` tiré au hasard et
+le premier admin donné par `--admin=<adresse>`. Il n'écrase jamais un
+`.env.local` existant. `npm test` fait tourner les fichiers de tests en
 parallèle, chaque worker sur sa propre base, `<base de test>_w1` à
 `<base de test>_w4` au plus, qu'il crée à côté de la base de test et supprime à
 la fin (`tests/bases-des-workers.ts`).
 
-PowerShell :
+Les mêmes commandes sous PowerShell et sous bash :
 
-```powershell
-npm ci
-docker compose up -d --wait
-npx tsx scripts/bases-locales.ts
-Copy-Item .env.example .env.local   # y remplacer DATABASE_URL par la ligne affichée, et remplir AUTH_SECRET (commande dans .env.example)
-npm run dev                         # accueil sur http://localhost:3000
 ```
-
-bash :
-
-```bash
 npm ci
 docker compose up -d --wait
-npx tsx scripts/bases-locales.ts
-cp .env.example .env.local          # y remplacer DATABASE_URL par la ligne affichée, et remplir AUTH_SECRET (commande dans .env.example)
+npx tsx scripts/bases-locales.ts --env-local --admin=votre.adresse@exemple.fr
 npm run dev                         # accueil sur http://localhost:3000
 ```
 

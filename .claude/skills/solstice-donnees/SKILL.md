@@ -233,8 +233,10 @@ après, tsx le passe au script comme argument et le fichier n'est pas lu.
   `catalogue-postgres`, `127.0.0.1:5433`, `trust`, volume nommé), un seul par
   poste pour toutes les applis. Puis `npx tsx scripts/bases-locales.ts` crée
   `<appli>_dev` et `<appli>_test` (nom de `package.json`) s'ils manquent et
-  affiche la ligne `DATABASE_URL` pour `.env.local` — il ne l'écrit pas, les
-  gardes refusent d'écrire un `.env*` — et la commande des tests. Une base
+  donne la commande des tests. `.env.local`, l'humain le crée en tapant la
+  même commande avec `--env-local` (et `--admin=<adresse>` avec la brique
+  `comptes`) : les gardes refusent à Claude d'écrire un `.env*`, et
+  `--env-local` avec. Une base
   VIDE suffit : le schéma s'applique à la première requête. L'appli en dev
   pointe `<appli>_dev`, jamais la base de test. Pas de dry-run ici : le script
   ne joint que le conteneur local par `docker exec` et ne crée que des bases

@@ -1,8 +1,16 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
-import { baseDuWorker, estBaseDeTest, ligneEnvLocal, nomsDesBases } from "../scripts/lib/bases-locales";
+import { afterAll, describe, expect, it } from "vitest";
+import {
+  baseDuWorker,
+  commandesDesTests,
+  estBaseDeTest,
+  ligneEnvLocal,
+  nomsDesBases,
+  preparerEnvLocal,
+} from "../scripts/lib/bases-locales";
 
 /*
  * La base locale du poste. Un jour, Docker était arrêté,
@@ -35,6 +43,160 @@ describe("noms des bases locales", () => {
   it("donne à coller la base _dev, jamais celle des tests (les tests y écrivent et y effacent : les données de dev n'y survivraient pas)", () => {
     const ligne = ligneEnvLocal(nomsDesBases("mon-appli"), 5433);
     expect(ligne).toBe("DATABASE_URL=postgresql://postgres@localhost:5433/mon_appli_dev");
+  });
+});
+
+// ------------------------------------------------------------ commandes des tests
+
+// Essai du 2026-11-13 dans GitHub Codespaces : sous Linux, le script affichait
+// d'abord les commandes PowerShell, qu'un terminal bash ne comprend pas.
+describe("commandes des tests affichées", () => {
+  const url = "postgresql://postgres@localhost:5433/mon_appli_test";
+
+  it("sous Windows, ne donne que celles de PowerShell", () => {
+    const lignes = commandesDesTests(url, "win32").join("\n");
+    expect(lignes).toContain(`$env:DATABASE_URL = '${url}'`);
+    expect(lignes).not.toContain(`DATABASE_URL=${url} `);
+  });
+
+  it("sous Linux (Codespaces) et macOS, ne donne que celles de bash", () => {
+    for (const plateforme of ["linux", "darwin"]) {
+      const lignes = commandesDesTests(url, plateforme).join("\n");
+      expect(lignes, plateforme).toContain(`DATABASE_URL=${url} PGSSLMODE=disable npm test`);
+      expect(lignes, plateforme).not.toMatch(/\$env:|PowerShell/);
+    }
+  });
+});
+
+// ------------------------------------------------------------ .env.local
+
+// Essai du 2026-11-13 au 2026-11-16 : préparer .env.local à la main (copier le
+// modèle, coller DATABASE_URL, générer AUTH_SECRET, ajouter
+// COMPTES_PREMIER_ADMIN que les consignes oubliaient) a été le geste le plus
+// technique pour une personne non développeuse. --env-local le fait, tapé par
+// elle : les gardes refusent à Claude d'écrire un .env*.
+describe("préparation de .env.local (--env-local)", () => {
+  const dossiers: string[] = [];
+  afterAll(() => {
+    for (const dossier of dossiers) fs.rmSync(dossier, { recursive: true, force: true });
+  });
+
+  const BASE = [
+    "# Modèle des variables.",
+    "DATABASE_URL=postgresql://postgres@localhost:5433/mon_appli_dev",
+    "PGSSLMODE=disable",
+    "# COMMIT_DEPLOYE=",
+    "IP_EN_TETE_CLIENT=",
+  ];
+  const COMPTES = [
+    "# Brique comptes (src/briques/comptes/).",
+    "AUTH_SECRET=",
+    "COMPTES_PREMIER_ADMIN=",
+    "GOOGLE_CLIENT_ID=",
+    "# Fin de la brique comptes.",
+  ];
+  const MAILS = ['MAILS_EXPEDITEUR="Mon appli <ne-pas-repondre@exemple.fr>"'];
+  const AVEC_COMPTES = [...BASE, ...COMPTES, ...MAILS, ""].join("\n");
+  const SANS_COMPTES = [...BASE, ...MAILS, ""].join("\n");
+
+  function dossierAvec(modele: string | null, envLocal?: string): string {
+    const dossier = fs.mkdtempSync(path.join(os.tmpdir(), "env-local-"));
+    dossiers.push(dossier);
+    if (modele !== null) fs.writeFileSync(path.join(dossier, ".env.example"), modele);
+    if (envLocal !== undefined) fs.writeFileSync(path.join(dossier, ".env.local"), envLocal);
+    return dossier;
+  }
+  const bases = nomsDesBases("suivi-contrats");
+  const preparer = (dossier: string, adresseAdmin: string | null, plateforme = "linux") =>
+    preparerEnvLocal({ dossier, bases, port: 5433, adresseAdmin, plateforme });
+  const lire = (dossier: string) => fs.readFileSync(path.join(dossier, ".env.local"), "utf-8");
+  const valeur = (texte: string, nom: string) => new RegExp(`^${nom}=(.*)$`, "m").exec(texte)?.[1];
+
+  it("crée .env.local depuis .env.example, DATABASE_URL sur la base _dev locale, jamais celle des tests ni une base distante", () => {
+    const dossier = dossierAvec(SANS_COMPTES);
+    preparer(dossier, null);
+    const env = lire(dossier);
+    expect(valeur(env, "DATABASE_URL")).toBe("postgresql://postgres@localhost:5433/suivi_contrats_dev");
+    expect(valeur(env, "PGSSLMODE")).toBe("disable");
+    // Le reste du modèle est recopié tel quel, commentaires compris.
+    expect(env).toContain("# COMMIT_DEPLOYE=");
+    expect(env).toContain('MAILS_EXPEDITEUR="Mon appli <ne-pas-repondre@exemple.fr>"');
+  });
+
+  it("avec la brique comptes, tire un AUTH_SECRET au hasard (32 caractères au moins) et pose le premier admin", () => {
+    const premier = dossierAvec(AVEC_COMPTES);
+    const second = dossierAvec(AVEC_COMPTES);
+    const compteRendu = preparer(premier, "Admin@Exemple.fr").join("\n");
+    preparer(second, "admin@exemple.fr");
+    const secret = valeur(lire(premier), "AUTH_SECRET") as string;
+    expect(secret.length).toBeGreaterThanOrEqual(32);
+    expect(valeur(lire(second), "AUTH_SECRET")).not.toBe(secret);
+    expect(valeur(lire(premier), "COMPTES_PREMIER_ADMIN")).toBe("Admin@Exemple.fr");
+    // Le secret ne s'affiche pas : la sortie du terminal peut se coller dans un ticket.
+    expect(compteRendu).not.toContain(secret);
+    expect(compteRendu).toContain("AUTH_SECRET");
+    // Les autres variables de la brique restent vides, à remplir au besoin.
+    expect(valeur(lire(premier), "GOOGLE_CLIENT_ID")).toBe("");
+  });
+
+  it("avec la brique comptes, refuse sans adresse de premier admin et n'écrit rien (personne n'entrerait en local)", () => {
+    const dossier = dossierAvec(AVEC_COMPTES);
+    expect(() => preparer(dossier, null)).toThrow(/--admin=/);
+    expect(fs.existsSync(path.join(dossier, ".env.local"))).toBe(false);
+  });
+
+  it("refuse une adresse de premier admin qui n'en est pas une, sans rien écrire", () => {
+    for (const adresse of ["", "admin", "admin@", "@exemple.fr", "admin@exemple", "a b@exemple.fr"]) {
+      const dossier = dossierAvec(AVEC_COMPTES);
+      expect(() => preparer(dossier, adresse), adresse).toThrow(/adresse/i);
+      expect(fs.existsSync(path.join(dossier, ".env.local")), adresse).toBe(false);
+    }
+  });
+
+  it("sans la brique comptes, n'exige pas d'adresse et n'ajoute ni secret ni premier admin", () => {
+    const dossier = dossierAvec(SANS_COMPTES);
+    const compteRendu = preparer(dossier, "admin@exemple.fr").join("\n");
+    expect(lire(dossier)).not.toMatch(/AUTH_SECRET|COMPTES_PREMIER_ADMIN/);
+    expect(compteRendu).toMatch(/sans la brique comptes/i);
+  });
+
+  it("n'écrase jamais un .env.local existant et dit comment repartir du modèle, dans le shell du poste", () => {
+    const existant = "DATABASE_URL=postgresql://postgres@localhost:5433/autre_dev\nAUTH_SECRET=garde-le\n";
+    const linux = dossierAvec(AVEC_COMPTES, existant);
+    expect(() => preparer(linux, "admin@exemple.fr")).toThrow(/mv \.env\.local \.env\.local\.ancien/);
+    expect(lire(linux)).toBe(existant);
+    const windows = dossierAvec(AVEC_COMPTES, existant);
+    expect(() => preparer(windows, "admin@exemple.fr", "win32")).toThrow(
+      /Rename-Item \.env\.local \.env\.local\.ancien/
+    );
+    expect(lire(windows)).toBe(existant);
+  });
+
+  it("refuse sans .env.example, lancé hors de la racine de l'appli", () => {
+    const dossier = dossierAvec(null);
+    expect(() => preparer(dossier, "admin@exemple.fr")).toThrow(/\.env\.example/);
+    expect(fs.existsSync(path.join(dossier, ".env.local"))).toBe(false);
+  });
+
+  it("garde les fins de ligne du modèle (CRLF d'un poste Windows)", () => {
+    const dossier = dossierAvec(AVEC_COMPTES.replace(/\n/g, "\r\n"));
+    preparer(dossier, "admin@exemple.fr");
+    const env = lire(dossier);
+    expect(env).toContain("DATABASE_URL=postgresql://postgres@localhost:5433/suivi_contrats_dev\r\n");
+    expect(env).toContain("COMPTES_PREMIER_ADMIN=admin@exemple.fr\r\n");
+    expect(env.replace(/\r\n/g, "")).not.toContain("\n");
+  });
+
+  it("prépare le vrai .env.example de ce dépôt", () => {
+    const modele = fs.readFileSync(path.join(process.cwd(), ".env.example"), "utf-8");
+    const dossier = dossierAvec(modele);
+    preparer(dossier, "admin@exemple.fr");
+    const env = lire(dossier);
+    expect(valeur(env, "DATABASE_URL")).toBe("postgresql://postgres@localhost:5433/suivi_contrats_dev");
+    if (/^AUTH_SECRET=/m.test(modele)) {
+      expect((valeur(env, "AUTH_SECRET") as string).length).toBeGreaterThanOrEqual(32);
+      expect(valeur(env, "COMPTES_PREMIER_ADMIN")).toBe("admin@exemple.fr");
+    }
   });
 });
 

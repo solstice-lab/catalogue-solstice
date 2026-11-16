@@ -45,6 +45,20 @@ refuse(cmd("cd app && npx tsx scripts/import.ts --confirmer"));
 passe(cmd("npx tsx scripts/import.ts --env-file=.env.local"));
 passe(cmd('git commit -m "Import : --confirmer reste tapé par un humain"'));
 
+// --- --env-local : le script écrit .env.local, que Claude n'écrit pas ---
+
+refuse(cmd("npx tsx scripts/bases-locales.ts --env-local --admin=admin@exemple.fr"));
+refuse(cmd("npx tsx scripts/bases-locales.ts --admin=admin@exemple.fr --env-local"));
+refuse(cmd("cd ../mon-appli && npx tsx scripts/bases-locales.ts --env-local"));
+refuse(cmd("npx tsx scripts/bases-locales.ts --env-local=oui"));
+refuse(cmd(`node -e "require('child_process').execSync('npx tsx scripts/bases-locales.ts --env-local')"`));
+refuse(cmd("bash -c 'npx tsx scripts/bases-locales.ts --env-local'"));
+passe(cmd("npx tsx scripts/bases-locales.ts"));
+passe(cmd("npx tsx scripts/import.ts --env-file=.env.local"));
+passe(cmd("grep -rn -- --env-local docs/"));
+passe(cmd("echo npx tsx scripts/bases-locales.ts --env-local --admin=admin@exemple.fr"));
+passe(cmd('git commit -m "Socle : --env-local tapé par un humain"'));
+
 // --- git add -f ---
 
 refuse(cmd("git add -f rapport.docx"));

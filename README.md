@@ -182,32 +182,22 @@ npm ci
 node outils/assembler.mjs ../mon-appli --briques comptes,mails,echeances
 ```
 
-Puis, dans l'appli assemblée, installer et créer ses bases locales :
+Puis, dans l'appli assemblée, installer, créer ses bases locales et son
+`.env.local`, et la lancer (les mêmes commandes sous PowerShell et sous bash) :
 
 ```
 cd ../mon-appli
 npm ci
 docker compose up -d --wait
-npx tsx scripts/bases-locales.ts
-```
-
-Copier le modèle des variables en `.env.local`, y remplacer `DATABASE_URL` par la
-ligne qu'affiche `bases-locales.ts` (et, avec `comptes`, remplir `AUTH_SECRET` :
-la commande est dans `.env.example`), puis lancer l'appli. PowerShell :
-
-```powershell
-Copy-Item .env.example .env.local
+npx tsx scripts/bases-locales.ts --env-local --admin=votre.adresse@exemple.fr
 npm run dev
 ```
 
-bash :
-
-```bash
-cp .env.example .env.local
-npm run dev
-```
-
-L'accueil est sur http://localhost:3000. Sans brique,
+`--env-local` crée `.env.local` depuis `.env.example`, avec les seules valeurs
+du travail local : la base de développement et, avec `comptes`, un `AUTH_SECRET`
+tiré au hasard et l'adresse du premier admin, celle qui se connectera (sans
+`comptes`, `--admin` ne sert pas). Il n'écrase jamais un `.env.local`
+existant. L'accueil est sur http://localhost:3000. Sans brique,
 `node outils/assembler.mjs ../mon-site` donne un site sans base : ni Docker ni
 `.env.local`, `npm ci` puis `npm run dev` suffisent.
 

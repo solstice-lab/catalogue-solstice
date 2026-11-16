@@ -138,7 +138,7 @@ navigateur : la personne qui pilote le projet vérifie elle-même le rendu.
 
 `.claude/settings.json` branche `.claude/hooks/gardes.mjs` avant chaque commande et chaque
 écriture. Il refuse, même confiés à un interpréteur : écrire un `.env*` (hors `.env.example`),
-`.envrc` ou `.npmrc`, un mot de passe de base distante, `git add -f`, `--confirmer`, la fusion
+`.envrc` ou `.npmrc` (et `--env-local`, qui écrit `.env.local`), un mot de passe de base distante, `git add -f`, `--confirmer`, la fusion
 d'une PR (`gh pr merge`, API), `git push --force` (`--force-with-lease` passe), `--no-verify`.
 Il arrête l'inadvertance, pas qui veut passer : la barrière réelle est le ruleset GitHub de `main`
 et l'absence de secrets de prod sur le poste. Un refus ne se cherche pas de détour : dire à l'humain
