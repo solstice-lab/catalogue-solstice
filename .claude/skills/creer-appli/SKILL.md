@@ -46,7 +46,17 @@ Vérifier, et dire à l'humain ce qui manque plutôt que le réparer :
 
 ## 1. Cadrer
 
-Charger `solstice-nouvelle-appli` et en suivre le §1 (les blocs de questions, un par
+**Court ou complet** : le premier message du cadrage pose ce choix, avec une recommandation.
+Court quand le besoin tient en une ou deux phrases (une liste, un suivi, pour une équipe) ou
+que la personne veut essayer ; complet quand l'appli s'ouvrira bientôt à de vrais utilisateurs,
+ou que le client a déjà ses réponses (mentions légales, charte, conservation des données).
+Une demande qui dit déjà « court », « rapide » ou « pour essayer » vaut réponse. Court : suivre
+[`cadrage-court.md`](cadrage-court.md), qui remplace la suite de cette étape. Cas d'origine : à
+l'essai du 2026-11-13, pour « une liste des fournisseurs de mon entreprise, consultable par mes
+collègues après connexion », le cadrage complet a été jugé trop long pour une PME qui
+essaie ; trois questions et des valeurs par défaut ont suffi.
+
+Complet : charger `solstice-nouvelle-appli` et en suivre le §1 (les blocs de questions, un par
 message, avec recommandation), le §2 (la forme : ici, une nouvelle appli assemblée)
 et le §3 (la fiche projet, présentée et validée dans la conversation). **Ne pas recopier ses
 questions ici.** Y ajouter ce que seul l'assemblage demande :

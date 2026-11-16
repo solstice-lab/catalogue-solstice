@@ -12,7 +12,8 @@ c'est une PR que personne ne peut vérifier écran par écran.
 
 Un bloc par message, chaque question avec ta recommandation. « Je ne sais pas » est une
 réponse : la noter en question ouverte, avec qui tranche et avant quelle étape. Ne pas
-demander ce que le code ou le `CLAUDE.md` tranchent déjà.
+demander ce que le code ou le `CLAUDE.md` tranchent déjà. Depuis le catalogue, la skill
+`creer-appli` propose aussi un cadrage court : choisi, il remplace ces blocs.
 
 **Le besoin**
 - À quoi ça sert, pour qui, combien de personnes, à quelle fréquence ?
