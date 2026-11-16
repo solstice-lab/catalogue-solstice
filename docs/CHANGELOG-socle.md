@@ -174,7 +174,10 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   `.env.local` depuis `.env.example`, avec les seules valeurs du travail
   local : `DATABASE_URL` sur la base `<appli>_dev` et, avec la brique
   `comptes`, un `AUTH_SECRET` tiré au hasard et `COMPTES_PREMIER_ADMIN`, donné
-  par `--admin=<adresse>` (exigé avec `comptes`). Il n'écrase jamais un
+  par `--admin=<adresse>` (exigé avec `comptes`). Ce qu'il remplit au-delà
+  de la base, une brique le déclare dans son bloc de `.env.example`, par une
+  ligne `# --env-local : valeur tirée au hasard` ou `# --env-local : adresse
+  donnée par --admin` juste au-dessus de la variable. Il n'écrase jamais un
   `.env.local` existant et dit comment repartir du modèle. Sans l'option, le
   script donne cette commande au lieu de la ligne `DATABASE_URL` à coller. Il
   n'affiche plus que les commandes de test du système en cours (PowerShell

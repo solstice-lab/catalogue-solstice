@@ -9,12 +9,12 @@
  *
  * --env-local crée en plus .env.local pour le travail local, sans jamais
  * écraser un .env.local existant (preparerEnvLocal, lib/bases-locales.ts) ;
- * --admin, l'adresse du premier admin, est exigée avec la brique comptes. La
- * personne la tape elle-même : les gardes de Claude refusent d'écrire un
- * .env*, et refusent --env-local pour la même raison. Une option plutôt
- * qu'un script à part : une seule commande crée les bases et le fichier qui
- * les vise, avec le port que lit ce script, et elle part avec la base d'une
- * appli qui n'en a pas (DONNEES d'outils/modules.mjs).
+ * --admin, l'adresse du premier admin, est exigée quand une brique l'attend
+ * (comptes). La personne la tape elle-même : les gardes de Claude refusent
+ * d'écrire un .env*, et refusent --env-local pour la même raison. Une option
+ * plutôt qu'un script à part : une seule commande crée les bases et le
+ * fichier qui les vise, avec le port que lit ce script, et elle part avec la
+ * base d'une appli qui n'en a pas, comme ce script.
  *
  * Pas de dry-run ni de --confirmer, à la différence des scripts de données
  * (scripts/lib/cli.ts) : il ne joint Postgres que par `docker exec` sur un
@@ -32,8 +32,9 @@ import path from "node:path";
 import { argumentTexte, drapeauPresent } from "./lib/cli";
 import {
   commandesDesTests,
+  exigeAdmin,
   lignesAVerifier,
-  modeleAvecComptes,
+  variablesLocales,
   nomsDesBases,
   preparerEnvLocal,
   urlLocale,
@@ -115,14 +116,15 @@ function principal(): void {
     });
   } else {
     const modele = path.join(dossier, ".env.example");
-    const avecComptes = fs.existsSync(modele) && modeleAvecComptes(fs.readFileSync(modele, "utf-8"));
+    const texte = fs.existsSync(modele) ? fs.readFileSync(modele, "utf-8") : "";
+    const admin = exigeAdmin(texte);
     envLocal = fs.existsSync(path.join(dossier, ".env.local"))
-      ? [".env.local existe déjà.", ...lignesAVerifier(bases, port, avecComptes)]
+      ? [".env.local existe déjà.", ...lignesAVerifier(bases, port, variablesLocales(texte))]
       : [
           "Pour créer .env.local, une commande à taper soi-même (Claude n'écrit pas ce fichier) :",
           "",
-          `npx tsx scripts/bases-locales.ts --env-local${avecComptes ? " --admin=votre.adresse@exemple.fr" : ""}`,
-          ...(avecComptes ? ["", "L'adresse est celle du premier admin : sans elle, personne n'entre en local."] : []),
+          `npx tsx scripts/bases-locales.ts --env-local${admin ? " --admin=votre.adresse@exemple.fr" : ""}`,
+          ...(admin ? ["", "L'adresse est celle du premier admin : sans elle, personne n'entre en local."] : []),
         ];
   }
   console.log(["", ...envLocal, "", ...commandesDesTests(urlLocale(bases.test, port), process.platform)].join("\n"));

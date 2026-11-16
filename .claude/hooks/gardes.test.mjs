@@ -49,7 +49,7 @@ passe(cmd('git commit -m "Import : --confirmer reste tapé par un humain"'));
 
 refuse(cmd("npx tsx scripts/bases-locales.ts --env-local --admin=admin@exemple.fr"));
 refuse(cmd("npx tsx scripts/bases-locales.ts --admin=admin@exemple.fr --env-local"));
-refuse(cmd("cd ../mon-appli && npx tsx scripts/bases-locales.ts --env-local"));
+refuse(cmd("cd ../essai && npx tsx scripts/bases-locales.ts --env-local"));
 refuse(cmd("npx tsx scripts/bases-locales.ts --env-local=oui"));
 refuse(cmd(`node -e "require('child_process').execSync('npx tsx scripts/bases-locales.ts --env-local')"`));
 refuse(cmd("bash -c 'npx tsx scripts/bases-locales.ts --env-local'"));

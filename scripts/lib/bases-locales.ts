@@ -89,32 +89,51 @@ export function commandesDesTests(urlTest: string, plateforme: string): string[]
   return ["Tests :", "", `DATABASE_URL=${urlTest} PGSSLMODE=disable npm test`];
 }
 
-// Une adresse plausible, sans plus : la brique comptes la compare ensuite,
-// en minuscules, à celle qui se connecte. Une faute de frappe (« admin@ »)
-// laisserait la personne à la porte de son appli sans qu'elle comprenne.
+// Une adresse plausible, sans plus : la brique qui l'attend la compare ensuite
+// à celle qui se connecte. Une faute de frappe (« admin@ ») laisserait la
+// personne à la porte de son appli sans qu'elle comprenne.
 const ADRESSE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Celle des consignes (README, skill creer-appli, sortie du script), recopiée
 // telle quelle : le premier admin serait une adresse que personne n'a.
 const ADRESSE_D_EXEMPLE = "votre.adresse@exemple.fr";
 
+/*
+ * Ce que --env-local remplit au-delà de la base, une brique le déclare dans son
+ * bloc de .env.example, par une ligne posée juste au-dessus de la variable :
+ *
+ *   # --env-local : valeur tirée au hasard
+ *   # --env-local : adresse donnée par --admin
+ *
+ * Le code ne nomme ainsi aucune variable de brique : ce fichier part avec la
+ * base dans des applis qui n'ont pas ces briques, et l'assembleur retire leur
+ * bloc de .env.example, annotations comprises.
+ */
+export type VariableLocale = { nom: string; source: "hasard" | "admin" };
+const ANNOTATION = /^# --env-local : (valeur tirée au hasard|adresse donnée par --admin)\r?\n([A-Z][A-Z0-9_]*)=/gm;
+
+export function variablesLocales(modele: string): VariableLocale[] {
+  return [...modele.matchAll(ANNOTATION)].map((m) => ({
+    nom: m[2],
+    source: m[1] === "valeur tirée au hasard" ? "hasard" : "admin",
+  }));
+}
+
+export function exigeAdmin(modele: string): boolean {
+  return variablesLocales(modele).some((v) => v.source === "admin");
+}
+
 // Ce qu'un .env.local déjà là doit porter pour le travail local : la base _dev
-// et, avec la brique comptes, les deux variables que l'essai du 2026-11-13 a
-// vu oublier.
-export function lignesAVerifier(bases: BasesLocales, port: number, avecComptes: boolean): string[] {
+// et ce que les briques déclarent (l'essai du 2026-11-13 a vu oublier le
+// premier admin).
+export function lignesAVerifier(bases: BasesLocales, port: number, variables: VariableLocale[]): string[] {
   return [
     "Lignes à y vérifier :",
     ligneEnvLocal(bases, port),
     "PGSSLMODE=disable",
-    ...(avecComptes
-      ? ["AUTH_SECRET=<32 caractères aléatoires au moins>", "COMPTES_PREMIER_ADMIN=<l'adresse qui se connecte>"]
-      : []),
+    ...variables.map(({ nom, source }) =>
+      source === "hasard" ? `${nom}=<32 caractères aléatoires au moins>` : `${nom}=<l'adresse qui se connecte>`
+    ),
   ];
-}
-
-// La brique comptes se reconnaît à la ligne AUTH_SECRET de .env.example, que
-// l'assembleur retire avec elle : le modèle dit ce que l'appli a gardé.
-export function modeleAvecComptes(modele: string): boolean {
-  return /^AUTH_SECRET=/m.test(modele);
 }
 
 export type OptionsEnvLocal = {
@@ -129,7 +148,7 @@ export type OptionsEnvLocal = {
  * --env-local de scripts/bases-locales.ts : crée .env.local depuis
  * .env.example, avec les seules valeurs du travail local. Essai du 2026-11-13
  * au 2026-11-16 : le préparer à la main (copier le modèle, coller DATABASE_URL,
- * générer AUTH_SECRET, ajouter COMPTES_PREMIER_ADMIN, que les consignes
+ * générer le secret de session, ajouter le premier admin, que les consignes
  * oubliaient) a été le geste le plus technique pour une personne non
  * développeuse.
  *
@@ -139,7 +158,7 @@ export type OptionsEnvLocal = {
  * N'écrase jamais un .env.local existant : il peut porter des valeurs que rien
  * ne sait refaire (une clé de test, un secret Google). Lève une Error, sans
  * rien écrire, si une condition manque ; renvoie sinon le compte rendu, sans
- * le secret.
+ * les secrets.
  */
 export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
   const { dossier, bases, port, adresseAdmin, plateforme } = options;
@@ -149,7 +168,8 @@ export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
     throw new Error(".env.example introuvable : lancer cette commande depuis la racine de l'appli.");
   }
   const modele = fs.readFileSync(cheminModele, "utf-8");
-  const avecComptes = modeleAvecComptes(modele);
+  const variables = variablesLocales(modele);
+  const admin = variables.find((v) => v.source === "admin");
 
   if (fs.existsSync(cheminLocal)) {
     const renommer =
@@ -159,15 +179,15 @@ export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
         ".env.local existe déjà : laissé tel quel, il n'est jamais écrasé.",
         `Pour repartir du modèle, le renommer (${renommer}), relancer cette commande, puis reprendre`,
         "dans .env.local les valeurs de .env.local.ancien qu'il faut garder.",
-        ...lignesAVerifier(bases, port, avecComptes),
+        ...lignesAVerifier(bases, port, variables),
       ].join("\n")
     );
   }
 
-  if (avecComptes) {
+  if (admin !== undefined) {
     if (adresseAdmin === null) {
       throw new Error(
-        "L'appli a la brique comptes : sans premier admin, personne n'entre en local. " +
+        `L'appli attend un premier admin (${admin.nom}) : sans lui, personne n'entre en local. ` +
           "Relancer avec son adresse : --admin=votre.adresse@exemple.fr"
       );
     }
@@ -182,11 +202,11 @@ export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
   const valeurs: [string, string][] = [
     ["DATABASE_URL", urlLocale(bases.dev, port)],
     ["PGSSLMODE", "disable"],
+    ...variables.map(({ nom, source }): [string, string] => [
+      nom,
+      source === "hasard" ? randomBytes(32).toString("base64url") : (adresseAdmin as string),
+    ]),
   ];
-  if (avecComptes) {
-    valeurs.push(["AUTH_SECRET", randomBytes(32).toString("base64url")]);
-    valeurs.push(["COMPTES_PREMIER_ADMIN", adresseAdmin as string]);
-  }
   let contenu = modele;
   for (const [nom, valeur] of valeurs) {
     // `.` s'arrête avant le \r d'un modèle en CRLF : la fin de ligne reste.
@@ -198,20 +218,20 @@ export function preparerEnvLocal(options: OptionsEnvLocal): string[] {
     else contenu = `${contenu}${/\n$/.test(contenu) || contenu === "" ? "" : "\n"}${nom}=${valeur}\n`;
   }
   // « wx » : jamais d'écrasement, même si le fichier est apparu entre-temps.
-  // 0600 : le secret n'est lisible que par son propriétaire (sans effet sous Windows).
+  // 0600 : les secrets ne sont lisibles que par leur propriétaire (sans effet sous Windows).
   fs.writeFileSync(cheminLocal, contenu, { encoding: "utf-8", flag: "wx", mode: 0o600 });
 
   return [
     ".env.local : créé depuis .env.example (fichier ignoré par git).",
     `  DATABASE_URL vise ${bases.dev}, la base de développement locale.`,
-    ...(avecComptes
-      ? [
-          "  AUTH_SECRET : tiré au hasard, propre à ce poste (non affiché).",
-          `  COMPTES_PREMIER_ADMIN : ${adresseAdmin}, qui entre en admin à sa première connexion.`,
-        ]
-      : adresseAdmin !== null
-        ? ["  Appli sans la brique comptes : --admin ne sert pas, ignoré."]
-        : []),
+    ...variables.map(({ nom, source }) =>
+      source === "hasard"
+        ? `  ${nom} : tiré au hasard, propre à ce poste (non affiché).`
+        : `  ${nom} : ${adresseAdmin}, qui entre en admin à sa première connexion.`
+    ),
+    ...(admin === undefined && adresseAdmin !== null
+      ? ["  L'appli n'attend pas de premier admin : --admin ne sert pas, ignoré."]
+      : []),
     "Valeurs locales seulement : chez l'hébergeur, les variables se déclarent chez lui.",
   ];
 }

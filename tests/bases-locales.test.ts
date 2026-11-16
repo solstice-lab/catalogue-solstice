@@ -10,6 +10,7 @@ import {
   ligneEnvLocal,
   nomsDesBases,
   preparerEnvLocal,
+  variablesLocales,
 } from "../scripts/lib/bases-locales";
 
 /*
@@ -74,10 +75,15 @@ describe("commandes des tests affichées", () => {
 // ------------------------------------------------------------ .env.local
 
 // Essai du 2026-11-13 au 2026-11-16 : préparer .env.local à la main (copier le
-// modèle, coller DATABASE_URL, générer AUTH_SECRET, ajouter
-// COMPTES_PREMIER_ADMIN que les consignes oubliaient) a été le geste le plus
+// modèle, coller DATABASE_URL, générer le secret de session, ajouter le
+// premier admin que les consignes oubliaient) a été le geste le plus
 // technique pour une personne non développeuse. --env-local le fait, tapé par
 // elle : les gardes refusent à Claude d'écrire un .env*.
+//
+// Ce fichier part avec la base dans des applis qui n'ont pas les autres
+// briques : ses modèles ne nomment aucune de leurs variables (l'assembleur
+// les y chercherait), d'où des noms inventés, annotés comme dans
+// .env.example.
 describe("préparation de .env.local (--env-local)", () => {
   const dossiers: string[] = [];
   afterAll(() => {
@@ -88,19 +94,19 @@ describe("préparation de .env.local (--env-local)", () => {
     "# Modèle des variables.",
     "DATABASE_URL=postgresql://postgres@localhost:5433/mon_appli_dev",
     "PGSSLMODE=disable",
-    "# COMMIT_DEPLOYE=",
-    "IP_EN_TETE_CLIENT=",
+    "# VARIABLE_COMMENTEE=",
   ];
-  const COMPTES = [
-    "# Brique comptes (src/briques/comptes/).",
-    "AUTH_SECRET=",
-    "COMPTES_PREMIER_ADMIN=",
-    "GOOGLE_CLIENT_ID=",
-    "# Fin de la brique comptes.",
+  const BRIQUE = [
+    "# Bloc d'une brique qui attend un secret et un premier admin.",
+    "# --env-local : valeur tirée au hasard",
+    "SECRET_DE_BRIQUE=",
+    "# --env-local : adresse donnée par --admin",
+    "ADMIN_DE_BRIQUE=",
+    "AUTRE_VARIABLE=",
   ];
-  const MAILS = ['MAILS_EXPEDITEUR="Mon appli <ne-pas-repondre@exemple.fr>"'];
-  const AVEC_COMPTES = [...BASE, ...COMPTES, ...MAILS, ""].join("\n");
-  const SANS_COMPTES = [...BASE, ...MAILS, ""].join("\n");
+  const AUTRE = ['EXPEDITEUR="Mon appli <ne-pas-repondre@exemple.fr>"'];
+  const AVEC_ADMIN = [...BASE, ...BRIQUE, ...AUTRE, ""].join("\n");
+  const SANS_ADMIN = [...BASE, ...AUTRE, ""].join("\n");
 
   function dossierAvec(modele: string | null, envLocal?: string): string {
     const dossier = fs.mkdtempSync(path.join(os.tmpdir(), "env-local-"));
@@ -116,84 +122,80 @@ describe("préparation de .env.local (--env-local)", () => {
   const valeur = (texte: string, nom: string) => new RegExp(`^${nom}=(.*)$`, "m").exec(texte)?.[1];
 
   it("crée .env.local depuis .env.example, DATABASE_URL sur la base _dev locale, jamais celle des tests ni une base distante", () => {
-    const dossier = dossierAvec(SANS_COMPTES);
+    const dossier = dossierAvec(SANS_ADMIN);
     preparer(dossier, null);
     const env = lire(dossier);
     expect(valeur(env, "DATABASE_URL")).toBe("postgresql://postgres@localhost:5433/suivi_contrats_dev");
     expect(valeur(env, "PGSSLMODE")).toBe("disable");
     // Le reste du modèle est recopié tel quel, commentaires compris.
-    expect(env).toContain("# COMMIT_DEPLOYE=");
-    expect(env).toContain('MAILS_EXPEDITEUR="Mon appli <ne-pas-repondre@exemple.fr>"');
+    expect(env).toContain("# VARIABLE_COMMENTEE=");
+    expect(env).toContain('EXPEDITEUR="Mon appli <ne-pas-repondre@exemple.fr>"');
   });
 
-  it("avec la brique comptes, tire un AUTH_SECRET au hasard (32 caractères au moins) et pose le premier admin", () => {
-    const premier = dossierAvec(AVEC_COMPTES);
-    const second = dossierAvec(AVEC_COMPTES);
+  it("tire au hasard (32 caractères au moins) la variable annotée « valeur tirée au hasard » et pose l'adresse de --admin (le secret et le premier admin de la brique comptes)", () => {
+    const premier = dossierAvec(AVEC_ADMIN);
+    const second = dossierAvec(AVEC_ADMIN);
     const compteRendu = preparer(premier, "Admin@Exemple.fr").join("\n");
     preparer(second, "admin@exemple.fr");
-    const secret = valeur(lire(premier), "AUTH_SECRET") as string;
+    const secret = valeur(lire(premier), "SECRET_DE_BRIQUE") as string;
     expect(secret.length).toBeGreaterThanOrEqual(32);
-    expect(valeur(lire(second), "AUTH_SECRET")).not.toBe(secret);
-    expect(valeur(lire(premier), "COMPTES_PREMIER_ADMIN")).toBe("Admin@Exemple.fr");
+    expect(valeur(lire(second), "SECRET_DE_BRIQUE")).not.toBe(secret);
+    expect(valeur(lire(premier), "ADMIN_DE_BRIQUE")).toBe("Admin@Exemple.fr");
     // Le secret ne s'affiche pas : la sortie du terminal peut se coller dans un ticket.
     expect(compteRendu).not.toContain(secret);
-    expect(compteRendu).toContain("AUTH_SECRET");
-    // Les autres variables de la brique restent vides, à remplir au besoin.
-    expect(valeur(lire(premier), "GOOGLE_CLIENT_ID")).toBe("");
+    expect(compteRendu).toContain("SECRET_DE_BRIQUE");
+    // Une variable sans annotation reste vide, à remplir au besoin.
+    expect(valeur(lire(premier), "AUTRE_VARIABLE")).toBe("");
   });
 
-  it("avec la brique comptes, refuse sans adresse de premier admin et n'écrit rien (personne n'entrerait en local)", () => {
-    const dossier = dossierAvec(AVEC_COMPTES);
+  it("quand une brique attend un premier admin, refuse sans son adresse et n'écrit rien (personne n'entrerait en local)", () => {
+    const dossier = dossierAvec(AVEC_ADMIN);
     expect(() => preparer(dossier, null)).toThrow(/--admin=/);
     expect(fs.existsSync(path.join(dossier, ".env.local"))).toBe(false);
   });
 
   it("refuse une adresse de premier admin qui n'en est pas une, sans rien écrire", () => {
     for (const adresse of ["", "admin", "admin@", "@exemple.fr", "admin@exemple", "a b@exemple.fr"]) {
-      const dossier = dossierAvec(AVEC_COMPTES);
+      const dossier = dossierAvec(AVEC_ADMIN);
       expect(() => preparer(dossier, adresse), adresse).toThrow(/adresse/i);
       expect(fs.existsSync(path.join(dossier, ".env.local")), adresse).toBe(false);
     }
   });
 
-  it("sans la brique comptes, n'exige pas d'adresse et n'ajoute ni secret ni premier admin", () => {
-    const dossier = dossierAvec(SANS_COMPTES);
+  it("refuse l'adresse d'exemple recopiée telle quelle depuis la consigne", () => {
+    const dossier = dossierAvec(AVEC_ADMIN);
+    expect(() => preparer(dossier, "votre.adresse@exemple.fr")).toThrow(/exemple/);
+    expect(fs.existsSync(path.join(dossier, ".env.local"))).toBe(false);
+  });
+
+  it("sans brique qui attend un premier admin, n'exige pas d'adresse et dit que --admin ne sert pas", () => {
+    const dossier = dossierAvec(SANS_ADMIN);
     const compteRendu = preparer(dossier, "admin@exemple.fr").join("\n");
-    expect(lire(dossier)).not.toMatch(/AUTH_SECRET|COMPTES_PREMIER_ADMIN/);
-    expect(compteRendu).toMatch(/sans la brique comptes/i);
+    expect(lire(dossier)).not.toContain("admin@exemple.fr");
+    expect(compteRendu).toMatch(/--admin ne sert pas/);
   });
 
   it("n'écrase jamais un .env.local existant et dit comment repartir du modèle, dans le shell du poste", () => {
-    const existant = "DATABASE_URL=postgresql://postgres@localhost:5433/autre_dev\nAUTH_SECRET=garde-le\n";
-    const linux = dossierAvec(AVEC_COMPTES, existant);
+    const existant = "DATABASE_URL=postgresql://postgres@localhost:5433/autre_dev\nSECRET_DE_BRIQUE=garde-le\n";
+    const linux = dossierAvec(AVEC_ADMIN, existant);
     expect(() => preparer(linux, "admin@exemple.fr")).toThrow(/mv \.env\.local \.env\.local\.ancien/);
     expect(lire(linux)).toBe(existant);
-    const windows = dossierAvec(AVEC_COMPTES, existant);
+    const windows = dossierAvec(AVEC_ADMIN, existant);
     expect(() => preparer(windows, "admin@exemple.fr", "win32")).toThrow(
       /Rename-Item \.env\.local \.env\.local\.ancien/
     );
     expect(lire(windows)).toBe(existant);
   });
 
-  it("refuse l'adresse d'exemple recopiée telle quelle depuis la consigne", () => {
-    const dossier = dossierAvec(AVEC_COMPTES);
-    expect(() => preparer(dossier, "votre.adresse@exemple.fr")).toThrow(/exemple/);
-    expect(fs.existsSync(path.join(dossier, ".env.local"))).toBe(false);
+  it("devant un .env.local existant, cite aussi les variables annotées à vérifier (le premier admin oublié à l'essai)", () => {
+    const dossier = dossierAvec(AVEC_ADMIN, "DATABASE_URL=\n");
+    expect(() => preparer(dossier, "admin@exemple.fr")).toThrow(/SECRET_DE_BRIQUE[\s\S]*ADMIN_DE_BRIQUE/);
   });
 
-  it("ajoute une variable que le modèle a perdue plutôt que de la dire posée sans l'écrire", () => {
-    const dossier = dossierAvec(
-      AVEC_COMPTES.replace("COMPTES_PREMIER_ADMIN=\n", "").replace("PGSSLMODE=disable\n", "")
-    );
+  it("ajoute une variable de la base que le modèle a perdue plutôt que de la dire posée sans l'écrire", () => {
+    const dossier = dossierAvec(AVEC_ADMIN.replace("PGSSLMODE=disable\n", ""));
     preparer(dossier, "admin@exemple.fr");
-    const env = lire(dossier);
-    expect(valeur(env, "COMPTES_PREMIER_ADMIN")).toBe("admin@exemple.fr");
-    expect(valeur(env, "PGSSLMODE")).toBe("disable");
-  });
-
-  it("devant un .env.local existant, cite aussi le secret et le premier admin à vérifier avec la brique comptes", () => {
-    const dossier = dossierAvec(AVEC_COMPTES, "DATABASE_URL=\n");
-    expect(() => preparer(dossier, "admin@exemple.fr")).toThrow(/AUTH_SECRET[\s\S]*COMPTES_PREMIER_ADMIN/);
+    expect(valeur(lire(dossier), "PGSSLMODE")).toBe("disable");
   });
 
   it("refuse sans .env.example, lancé hors de la racine de l'appli", () => {
@@ -203,24 +205,33 @@ describe("préparation de .env.local (--env-local)", () => {
   });
 
   it("garde les fins de ligne du modèle (CRLF d'un poste Windows)", () => {
-    const dossier = dossierAvec(AVEC_COMPTES.replace(/\n/g, "\r\n"));
+    const dossier = dossierAvec(AVEC_ADMIN.replace(/\n/g, "\r\n"));
     preparer(dossier, "admin@exemple.fr");
     const env = lire(dossier);
     expect(env).toContain("DATABASE_URL=postgresql://postgres@localhost:5433/suivi_contrats_dev\r\n");
-    expect(env).toContain("COMPTES_PREMIER_ADMIN=admin@exemple.fr\r\n");
+    expect(env).toContain("ADMIN_DE_BRIQUE=admin@exemple.fr\r\n");
     expect(env.replace(/\r\n/g, "")).not.toContain("\n");
   });
 
-  it("prépare le vrai .env.example de ce dépôt", () => {
+  it("prépare le vrai .env.example de cette appli, chaque variable annotée remplie", () => {
     const modele = fs.readFileSync(path.join(process.cwd(), ".env.example"), "utf-8");
     const dossier = dossierAvec(modele);
     preparer(dossier, "admin@exemple.fr");
     const env = lire(dossier);
     expect(valeur(env, "DATABASE_URL")).toBe("postgresql://postgres@localhost:5433/suivi_contrats_dev");
-    if (/^AUTH_SECRET=/m.test(modele)) {
-      expect((valeur(env, "AUTH_SECRET") as string).length).toBeGreaterThanOrEqual(32);
-      expect(valeur(env, "COMPTES_PREMIER_ADMIN")).toBe("admin@exemple.fr");
+    for (const { nom, source } of variablesLocales(modele)) {
+      if (source === "hasard") expect((valeur(env, nom) as string).length, nom).toBeGreaterThanOrEqual(32);
+      else expect(valeur(env, nom), nom).toBe("admin@exemple.fr");
     }
+  });
+
+  it("lit les annotations de .env.example, pas les variables voisines ni une annotation éloignée de sa variable", () => {
+    expect(variablesLocales(AVEC_ADMIN)).toEqual([
+      { nom: "SECRET_DE_BRIQUE", source: "hasard" },
+      { nom: "ADMIN_DE_BRIQUE", source: "admin" },
+    ]);
+    expect(variablesLocales("# --env-local : valeur tirée au hasard\n\nLOIN=\n")).toEqual([]);
+    expect(variablesLocales(SANS_ADMIN)).toEqual([]);
   });
 });
 
