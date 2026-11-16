@@ -51,7 +51,8 @@ Court quand le besoin tient en une ou deux phrases (une liste, un suivi, pour un
 que la personne veut essayer ; complet quand l'appli s'ouvrira bientôt à de vrais utilisateurs,
 ou que le client a déjà ses réponses (mentions légales, charte, conservation des données).
 Une demande qui dit déjà « court », « rapide » ou « pour essayer » vaut réponse. Court : suivre
-[`cadrage-court.md`](cadrage-court.md), qui remplace la suite de cette étape. Cas d'origine : à
+[`cadrage-court.md`](cadrage-court.md), qui remplace les questions de cette étape ; le dernier
+paragraphe de l'étape, sur la fiche, vaut pour les deux cadrages. Cas d'origine : à
 l'essai du 2026-11-13, pour « une liste des fournisseurs de mon entreprise, consultable par mes
 collègues après connexion », le cadrage complet a été jugé trop long pour une PME qui
 essaie ; trois questions et des valeurs par défaut ont suffi.
