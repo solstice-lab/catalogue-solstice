@@ -2681,7 +2681,11 @@ describe("fiche projet donnée à l'assembleur", () => {
 
   it("la copie telle quelle en PROJET.md à la racine, dans le premier et seul commit", { timeout: ENTIER }, () => {
     const fiche = path.join(dossierTemporaireVide(), "suivi-projet.md");
-    const contenu = "# Fiche projet\r\n\r\nLe besoin, les décisions.\r\n";
+    // Un écran de l'appli sous src/app/outils/ et l'outil du catalogue nommé sans
+    // son chemin passent : seul un chemin vers outils/ de la racine est refusé.
+    const contenu =
+      "# Fiche projet\r\n\r\nLe besoin, les décisions. Un écran sous `src/app/outils/`.\r\n" +
+      "À reporter par l'outil de mise à jour du catalogue.\r\n";
     fs.writeFileSync(fiche, contenu);
     const { dossier, fichiers } = assemblerEnTemporaire(variante, { fiche });
     expect(fs.readFileSync(path.join(dossier, "PROJET.md"), "utf-8")).toBe(contenu);
@@ -2710,6 +2714,29 @@ describe("fiche projet donnée à l'assembleur", () => {
     expect(erreur).toBeInstanceOf(ErreurAssemblage);
     expect((erreur as Error).message).toContain(fiche);
     expect(fs.existsSync(sortie)).toBe(false);
+  });
+
+  // Cas d'origine (essai de bout en bout du 2026-11-13) : la fiche citait
+  // outils/mettre-a-jour.mjs dans ses questions ouvertes. L'appli ne reçoit pas
+  // outils/, et la première session ouverte dans l'appli a relevé ce lien mort.
+  // Le verrou des renvois ne lit que les fichiers copiés du catalogue ; la fiche
+  // est réécrite à chaque cadrage, seul l'assembleur peut la tenir.
+  it("refuse une fiche qui cite outils/, absent de l'appli, en nommant le renvoi et sa ligne, sans créer le dossier de sortie", () => {
+    for (const renvoi of ["outils/mettre-a-jour.mjs", "../outils/assembler.mjs", "Outils/mise-a-jour.md"]) {
+      const fiche = path.join(dossierTemporaireVide(), "projet.md");
+      fs.writeFileSync(fiche, `# Fiche projet\n\n## Questions ouvertes\n\n- À reporter par \`${renvoi}\`.\n`);
+      const sortie = path.join(dossierTemporaireVide(), "appli");
+      let erreur: unknown;
+      try {
+        assembler({ source: SOURCE, sortie, commit: COMMIT_DE_TEST, ...variante, fiche });
+      } catch (e) {
+        erreur = e;
+      }
+      expect(erreur, renvoi).toBeInstanceOf(ErreurAssemblage);
+      expect((erreur as Error).message, renvoi).toMatch(/--fiche|fiche projet/);
+      expect((erreur as Error).message, renvoi).toContain(`« ${renvoi} » (ligne 5)`);
+      expect(fs.existsSync(sortie), renvoi).toBe(false);
+    }
   });
 
   // Cas d'origine (audit du 2026-11-09) : une faute de chemin à --fiche aurait copié
