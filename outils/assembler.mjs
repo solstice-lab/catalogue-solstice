@@ -528,11 +528,23 @@ function lireLaBlueprint(fichier) {
   }).toString("utf-8");
 }
 
+// Un chemin vers un fichier d'outils/ de la racine (un script .mjs, une note
+// .md), ou le dossier seul entre accents graves. Plus étroit que le verrou des
+// renvois de tests/aide-assemblage.ts, qui lit du code : la fiche est de la
+// prose, où « Menu Outils/Réglages » ou « les outils/services du client » ne
+// renvoient à rien. Le lookbehind écarte un src/app/outils/ de l'appli.
+const RENVOI_AUX_OUTILS =
+  /(?<![\p{L}\p{N}_./-])(?:\.{1,2}\/)*outils\/[\p{L}\p{N}_./-]*\.(?:mjs|md)(?![\p{L}\p{N}_])|(?<=`)(?:\.{1,2}\/)*outils\/(?=`)/u;
+
 // La fiche projet (PROJET.md de l'appli) est écrite par la skill creer-appli
 // AVANT l'assemblage, hors du catalogue comme la blueprint : elle part ainsi
-// dans le premier commit, copiée octet pour octet.
+// dans le premier commit, copiée octet pour octet. Elle ne cite pas outils/ :
+// à l'essai de bout en bout du 2026-11-13, sa ligne « à reporter par
+// outils/mettre-a-jour.mjs » est devenue un lien mort de l'appli. Le verrou des
+// renvois ne tourne que sur les assemblages des tests ; la fiche d'un client,
+// réécrite à chaque cadrage, ne se tient qu'ici.
 function lireLaFiche(fichier) {
-  return verifierUnTexteDeProjet(fichier, "--fiche", () => {
+  const contenu = verifierUnTexteDeProjet(fichier, "--fiche", () => {
     try {
       return fs.readFileSync(fichier);
     } catch {
@@ -541,6 +553,17 @@ function lireLaFiche(fichier) {
       );
     }
   });
+  for (const [rang, ligne] of contenu.toString("utf-8").split("\n").entries()) {
+    const renvoi = RENVOI_AUX_OUTILS.exec(ligne);
+    if (renvoi) {
+      throw new ErreurAssemblage(
+        `La fiche projet « ${fichier} » cite « ${renvoi[0]} » (ligne ${rang + 1}) : l'appli ne reçoit pas outils/, ` +
+          "et ce renvoi serait mort dans son PROJET.md. Nommer l'outil ou la note sans son chemin (par exemple " +
+          "« l'outil de mise à jour du catalogue »), puis relancer avec --fiche."
+      );
+    }
+  }
+  return contenu;
 }
 
 /*
@@ -1423,7 +1446,8 @@ const AIDE = `Usage : node outils/assembler.mjs <dossier-vide> [--briques <liste
                       (défaut : pas de PROJET.md)
                       --blueprint et --fiche refusent un fichier dont le nom ne finit pas
                       par .md, ou dont le texte porte une clé (-----BEGIN) ou une URL de
-                      base distante avec mot de passe
+                      base distante avec mot de passe ; --fiche refuse aussi une fiche dont
+                      le texte cite un fichier d'outils/, que l'appli ne reçoit pas
   --dependabot        garder .github/dependabot.yml, à demander quand quelqu'un entretient
                       l'appli après la livraison (défaut : retiré, car sans personne pour
                       les fusionner, ses PR hebdomadaires s'accumulent)

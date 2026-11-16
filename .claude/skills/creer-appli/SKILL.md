@@ -51,7 +51,8 @@ Court quand le besoin tient en une ou deux phrases (une liste, un suivi, pour un
 que la personne veut essayer ; complet quand l'appli s'ouvrira bientôt à de vrais utilisateurs,
 ou que le client a déjà ses réponses (mentions légales, charte, conservation des données).
 Une demande qui dit déjà « court », « rapide » ou « pour essayer » vaut réponse. Court : suivre
-[`cadrage-court.md`](cadrage-court.md), qui remplace la suite de cette étape. Cas d'origine : à
+[`cadrage-court.md`](cadrage-court.md), qui remplace les questions de cette étape ; le dernier
+paragraphe de l'étape, sur la fiche, vaut pour les deux cadrages. Cas d'origine : à
 l'essai du 2026-11-13, pour « une liste des fournisseurs de mon entreprise, consultable par mes
 collègues après connexion », le cadrage complet a été jugé trop long pour une PME qui
 essaie ; trois questions et des valeurs par défaut ont suffi.
@@ -214,7 +215,12 @@ questions ici.** Y ajouter ce que seul l'assemblage demande :
   sa donnée, avant de choisir. Sauf pour un site vitrine.
 
 La fiche validée est **le préalable** : pas d'assemblage avant. Elle deviendra le
-`PROJET.md` du dossier assemblé, passée à l'assembleur par `--fiche` (étape 4).
+`PROJET.md` du dossier assemblé, passée à l'assembleur par `--fiche` (étape 4). Elle suit donc
+la règle de la blueprint (« Ce que la blueprint ne cite pas », [`blueprint-modele.md`](blueprint-modele.md)) :
+un outil ou un document du catalogue s'y nomme en clair (« l'outil de mise à jour du
+catalogue »), jamais par son chemin. Cas d'origine : à l'essai du 2026-11-13, une question
+ouverte « à reporter par `outils/mettre-a-jour.mjs` » est devenue un lien mort de l'appli.
+L'assembleur refuse désormais une fiche qui cite un fichier d'`outils/`.
 
 ## 2. Choisir les briques
 
@@ -409,6 +415,7 @@ attendu », se corrigent en relisant la commande.
 | « La blueprint n'a pas d'en-tête YAML » | Reprendre l'en-tête du modèle : un bloc entre deux lignes `---` en tête de fichier. |
 | « La blueprint … est introuvable ou illisible » | Le chemin donné à `--blueprint` ne désigne pas un fichier lisible : le corriger (il se lit depuis le dossier où la commande est lancée). Le dossier de sortie n'est pas créé. |
 | « La fiche projet … est introuvable ou illisible » | Même chose pour `--fiche`. |
+| « La fiche projet … cite « outils/… » (ligne n) » | Réécrire cette ligne de la fiche en nommant l'outil ou la note sans son chemin (étape 1, fin), puis relancer. La fiche validée ne change pas de sens : pas de nouvelle validation. Le dossier de sortie n'est pas créé. |
 | « … ne finit pas par .md », « … contient -----BEGIN », « … contient une URL de base distante avec mot de passe », « … contient des octets nuls » | Le chemin donné à `--blueprint` ou `--fiche` ne désigne pas la blueprint ou la fiche : une clé ou un autre fichier a été pris pour elle. Corriger le chemin ; **ne pas ouvrir ni afficher le fichier incriminé** (le refus ne cite pas ce qu'il a trouvé). Le dossier de sortie n'est pas créé. |
 | « git n'a pas d'identité » | Donner à l'humain les deux commandes `git config --global` du message, **à taper par lui** (son nom et son adresse), puis relancer. Le dossier de sortie est resté tel qu'il était. |
 | « git init » a échoué, ou « … a pour racine … » | Rapporter le message tel quel à l'humain ; ne pas versionner le dossier à la main. Le dossier de sortie est resté tel qu'il était. |
