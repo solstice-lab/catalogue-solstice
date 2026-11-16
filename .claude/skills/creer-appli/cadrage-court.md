@@ -2,11 +2,13 @@
 
 Trois questions, des valeurs par défaut pour tout le reste, un seul message de validation. Il
 remplace les blocs de `solstice-nouvelle-appli` §1 et les questions de l'étape 1 de
-[`SKILL.md`](SKILL.md) ; tout le reste demeure : charger `solstice-nouvelle-appli` pour la
-forme (§2) et les rubriques de la fiche (§3), puis suivre les étapes 2 à 7, relecture
-`relecteur-blueprint` comprise. Ce qui n'est pas demandé n'est pas tranché en silence : chaque
-valeur par défaut se montre, et celles qui engagent la mise en ligne restent ouvertes, avec
-leur échéance, jusqu'aux tickets qui les règlent.
+[`SKILL.md`](SKILL.md). Le reste demeure : charger `solstice-nouvelle-appli` pour la forme (§2)
+et les rubriques de la fiche (§3) ; faire les lectures de l'étape 2 (`choix.md`, la section
+« Interface publique » de chaque brique retenue, `outils/modules.mjs`) avant le message de
+validation ; après lui, les étapes 3 à 7, relecture `relecteur-blueprint` comprise. Ce qui
+n'est pas demandé n'est pas tranché en silence : chaque valeur par défaut se montre, et celles
+qui engagent la mise en ligne restent ouvertes, avec leur échéance, jusqu'aux tickets qui les
+règlent.
 
 ## Les trois questions
 
@@ -16,27 +18,29 @@ fournisseurs de mon entreprise, consultable par mes collègues après connexion 
 aux trois.
 
 1. **Ce que vous suivez**, et ce que chaque fiche garde (quelques champs). Elle choisit les
-   briques en plus d'après [`choix.md`](choix.md) : une date à surveiller appelle
-   `echeances`, un fichier à reprendre `import-lot`, une décision à tracer `validation`, des
-   groupes qui ne voient que leurs fiches `espaces`. Aucune autre brique. « Rien à garder, des
+   briques en plus d'après [`choix.md`](choix.md), seulement celles qu'elle appelle en toutes
+   lettres : une date à surveiller `echeances`, un fichier à reprendre `import-lot`, une
+   décision à tracer `validation`, des groupes qui ne voient que leurs fiches `espaces`, un
+   formulaire de contact sur une vitrine `mails,contact`. Un besoin seulement évoqué (des
+   rappels, un historique) va en « Pas en v1 » : une brique s'ajoute ensuite sans grand
+   frais (étape 2, « La base et `comptes` se décident à l'assemblage »). « Rien à garder, des
    pages à montrer » mène à la vitrine.
-2. **Qui s'en sert, et qui ouvre l'accès.** Des collègues d'un même domaine de messagerie, ou
-   une liste fixe : `outil-interne`. Des personnes extérieures invitées une à une, ou une
-   association sans domaine commun : `portail` (étape 1 de `SKILL.md`, « Le profil de
-   départ »).
+2. **Qui s'en sert, et qui ajoute ou retire les personnes.** La configuration, changée par un
+   développeur (un domaine de messagerie commun, une liste fixe) : `outil-interne`. Un admin à
+   l'écran (des personnes invitées une à une, une association dont les adhésions changent) :
+   `portail` (étape 1 de `SKILL.md`, « Le profil de départ »).
 3. **Faut-il se connecter pour voir ?** Oui : la brique `comptes`. Non, sans rien à garder :
    la vitrine.
 
-## Passer au cadrage complet
+## Sortir du cadrage court
 
-Le bloc concerné de `solstice-nouvelle-appli` §1 se pose en entier, et lui seul, quand une
-réponse fait voir :
-
-- des données de santé, d'opinion ou d'une autre catégorie particulière du RGPD, ou des
-  documents de clients ;
-- des données à garder sans connexion (hors formulaire de contact) ;
-- un partage avec une personne extérieure sans compte ;
-- de la vente ou de la publicité sur le site (le statut de l'éditeur n'est plus le défaut).
+- Des données de santé, d'opinion ou d'une autre catégorie particulière du RGPD, ou des
+  documents de clients : poser en entier le bloc « Les données » de `solstice-nouvelle-appli`
+  §1.
+- Un partage avec une personne extérieure sans compte : poser en entier le bloc « Les
+  accès ».
+- Des données à garder sans connexion (hors formulaire de contact) : aucun profil ne le
+  donne. Revenir avec la personne au profil de départ (étape 1 de `SKILL.md`).
 
 La personne peut aussi demander le cadrage complet à tout moment : ses réponses déjà données
 restent.
@@ -52,23 +56,29 @@ et portée par le ticket de la section 9 qui la règle.
 | --- | --- | --- |
 | Nom de l'appli, nom affiché | Tirés de la réponse 1 (`annuaire-fournisseurs`, « Annuaire des fournisseurs ») | |
 | Profil, briques | Déduits des trois réponses ; `deploiement` en plus (ligne Hébergement) | |
+| Entités | Clé métier : le champ qui nomme une fiche (un nom, une référence), unique. Suppression : définitive, par qui modifie, comme le patron `dossiers` | |
 | Entrée (avec `comptes`) | `entree: ferme`, rôles `membre` (consulte, rôle par défaut) et `admin` (modifie), `methodes: [code-email]`, `personnes_par_reseau` omis (défaut du profil) | la mise en ligne : domaine ou adresses admis, premier admin |
 | Écrans, thème | Ordinateur d'abord, utilisable sur téléphone ; thème de repli (charte Solstice Lab), une charte du client se pose par le ticket « thématiser » | |
-| Qui livre | La signature Solstice Lab reste (l'assembleur ne la retire pas) ; hors livraison Solstice Lab, la retirer est un ticket de la section 9, au choix de la personne | |
+| Qui livre | La personne qui mène le cadrage (propriétaire proposé du dépôt, étape 5.2) ; la signature Solstice Lab reste, et hors livraison Solstice Lab la retirer est un ticket de la section 9 | |
 | Langue, devise, fuseau | Français, euro, Europe/Paris | |
 | Auteur d'une proposition (avec `validation`) | Peut la décider, avec mention visible dans la file | |
-| Hébergement | Render, avec la brique `deploiement` ; comptes Render et Resend au nom du client | la mise en ligne |
+| Import (avec `import-lot`) | Relu avant d'être enregistré, fichier d'origine gardé | |
+| Hébergement | Render, avec la brique `deploiement` (le défaut de l'étape 1) ; comptes Render et Resend au nom du client | la mise en ligne |
 | Domaine d'envoi Resend (avec `mails`) | Aucun vérifié : `COMPTES_PREMIER_ADMIN` est l'adresse du propriétaire du compte Resend, seul à recevoir son code de connexion | le premier collègue invité |
-| Mentions légales | Éditeur professionnel (entreprise, association, indépendant) ; éditeur, directeur de la publication, forme juridique, immatriculation « à demander » ; hébergeur Render Services, Inc., adresse et téléphone à relever sur la facture ou le DPA du compte | la mise en ligne publique, ou le premier utilisateur réel d'une instance de recette |
-| Confidentialité | Rien de proposé (étape 1 de `SKILL.md`) : courriel des droits, délégué, autorité de contrôle, bases légales, durées (celles des briques « à valider »), destinataires, et les données de la réponse 1 comme traitement du projet, tous « à faire valider » | le premier utilisateur réel |
+| Mentions légales | Éditeur professionnel quand la demande vient d'une entreprise, d'une association ou d'un indépendant ; sinon le statut est « à demander », sans défaut. Éditeur, directeur de la publication, forme juridique, immatriculation « à demander » ; hébergeur Render Services, Inc., adresse et téléphone à relever sur la facture ou le DPA du compte | la mise en ligne publique, ou le premier utilisateur réel d'une instance de recette |
+| Confidentialité | Rien de proposé (étape 1 de `SKILL.md`) : courriel des droits, délégué, autorité de contrôle, bases légales, durées (celles des briques « à valider »), destinataires, et les données de la réponse 1 comme traitement du projet, tous « à faire valider » | le premier utilisateur réel ; vitrine : la mise en ligne publique |
 | Entretien après livraison | Personne de nommé : Dependabot retiré (pas de `--dependabot`) | |
-| Référencement | Outil interne, portail : site fermé, aucune page publique. Vitrine : site public, pages de la réponse 1. Description : une phrase tirée de la réponse 1 | vitrine : la mise en ligne publique |
-| Outil actuel, vrai exemple de la donnée | Pas demandés | le ticket du module : il ne se conçoit pas sans |
+| Référencement | `site: ferme`, vitrine comprise : son passage en public suit le ticket des mentions légales. Description : une phrase tirée de la réponse 1. Pages publiques : aucune, ou pour une vitrine celles de la réponse 1 | vitrine : la mise en ligne publique |
+| Bandeau « instance de recette » | Proposé dans le message de validation, un ticket de plus s'il est accepté | |
+| Outil actuel, volumes, vrai exemple de la donnée | Pas demandés | le ticket du module : il ne se conçoit pas sans |
 | Pas en v1 | Tout ce que la réponse 1 ne nomme pas | |
 
-Tant qu'une ligne « le premier utilisateur réel » reste ouverte, l'appli en ligne est une
-**instance de recette** : fermée aux moteurs, sans vrai membre (`solstice-nouvelle-appli` §1).
-Les données réelles du client restent hors du dépôt, comme au cadrage complet.
+**La durée de conservation** des données personnelles ordinaires (le nom, l'e-mail, le
+téléphone d'un contact) se décide d'entrée au cadrage complet (`solstice-nouvelle-appli` §1).
+Ici, elle est reportée au ticket de la confidentialité, comme le reste de la ligne : le client
+la valide, aucune durée n'est proposée. D'ici là l'appli est une **instance de recette** :
+fermée aux moteurs, sans vrai membre ni donnée réelle d'une personne
+(`solstice-nouvelle-appli` §1), et les données réelles du client restent hors du dépôt.
 
 ## Le message de validation
 
@@ -84,4 +94,6 @@ Un seul message, qui vaut la validation de la fiche (étape 1) et celle du choix
 3. **Une question** : valider tel quel, ou nommer les lignes à changer. Le message se
    re-présente avec les lignes changées, jusqu'au oui.
 
-Validé, le cadrage reprend à l'étape 3 de `SKILL.md` (la blueprint, puis sa relecture).
+Validé, le cadrage reprend à l'étape 3 de `SKILL.md`. La blueprint reprend les valeurs par
+défaut telles quelles : ce que l'appli remplace et ses volumes sont, en section 1, une
+question ouverte de la section 8, avant le ticket du module.
