@@ -227,8 +227,8 @@ Docker sur la machine.
 
 [![Ouvrir dans GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/solstice-lab/catalogue-solstice-vibe)
 
-Le parcours, en bref ; la note de l'essai réel, étape par étape avec les
-limites relevées, est [`docs/catalogue/codespaces.md`](docs/catalogue/codespaces.md) :
+Le parcours, en bref ; le parcours détaillé, le Codespace propre à chaque dépôt
+et les limites sont dans [`docs/catalogue/codespaces.md`](docs/catalogue/codespaces.md) :
 
 - **Deux autorisations au départ**, normales, à accepter : connecter votre
   compte Claude au premier lancement de Claude Code (par son extension ou dans
@@ -291,7 +291,7 @@ Claude se paie à part, comme sur un poste.
 | Pour                                         | Lire                                                                                                                                                               |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Démarrer une appli en local, mener un projet du cadrage à la mise en ligne | [`docs/catalogue/demarrer.md`](docs/catalogue/demarrer.md)                                                                          |
-| Travailler sans rien installer, dans GitHub Codespaces : la note de l'essai réel et les limites relevées | [`docs/catalogue/codespaces.md`](docs/catalogue/codespaces.md)                                                                      |
+| Travailler sans rien installer, dans GitHub Codespaces : le parcours détaillé, un Codespace par dépôt, les limites | [`docs/catalogue/codespaces.md`](docs/catalogue/codespaces.md)                                                                      |
 | Tout savoir de l'assembleur : options, profils, mise à jour d'une appli, création des tickets d'une blueprint | [`docs/catalogue/assembler.md`](docs/catalogue/assembler.md)                                                       |
 | Connaître ce que chaque brique exige et où elle se branche | [`docs/catalogue/briques.md`](docs/catalogue/briques.md)                                                                              |
 | Se repérer dans le dépôt, connaître les vérifications à lancer avant une pull request | [`docs/catalogue/structure.md`](docs/catalogue/structure.md)                                                          |
