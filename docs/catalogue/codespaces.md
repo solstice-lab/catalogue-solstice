@@ -26,7 +26,8 @@ l'environnement s'ouvre dans le navigateur, un compte GitHub et un compte Claude
 - **gh** (dépôt distant et issues d'une appli assemblée) et **Claude Code** (commande
   `claude` et extension VS Code, feature publiée par Anthropic).
 - **Ports** : 3000 redirigé (l'appli de `npm run dev`, ouverte dans le navigateur, sur une
-  adresse en `….app.github.dev` que seul le compte GitHub du Codespace peut voir) ; 5433
+  adresse en `….app.github.dev`, privée par défaut selon GitHub : seul le compte qui a
+  créé le Codespace l'ouvre) ; 5433
   jamais redirigé (Postgres sans mot de passe, pour le seul conteneur).
 - **Gardes** : `.claude/settings.json` les lance avec `node`, présent dans l'image.
 - **git** : Codespaces le configure d'office au nom du compte GitHub ; l'assembleur en a
@@ -40,7 +41,7 @@ porte la majeure de Node : elle change avec `.nvmrc`, comme le disent `ci.yml` e
 Si la création échoue : palette (**Ctrl+Maj+P**), **Codespaces: View Creation Log**, et lire
 la fin du journal (pour npm, il liste les versions trouvées).
 
-## Le parcours, constaté à l'essai
+## Le parcours
 
 Les commandes se tapent **dans le terminal du Codespace** (menu **Terminal**, **New
 Terminal**), un terminal Linux (bash), où le catalogue est déjà cloné et installé.
@@ -48,7 +49,8 @@ Terminal**), un terminal Linux (bash), où le catalogue est déjà cloné et ins
 1. **Créer le Codespace** depuis la page GitHub du catalogue : bouton **Code**, onglet
    **Codespaces**. **New with options** permet de choisir la région (Europe West existe)
    et la machine (2 cœurs suffisent).
-2. **Deux autorisations au premier usage**, à annoncer d'avance : le compte Claude, au
+2. **Deux autorisations au premier usage**, constatées à l'essai et à annoncer d'avance :
+   le compte Claude, au
    premier lancement de Claude Code (un lien s'ouvre dans le navigateur, puis un code à
    recoller) ; puis la connexion de `gh` au compte GitHub, au moment de créer le dépôt de
    l'appli (point 4). Claude Code s'ouvre soit par `claude` dans le terminal, soit par son
@@ -58,9 +60,12 @@ Terminal**), un terminal Linux (bash), où le catalogue est déjà cloné et ins
    elle demande le système, répondre : « Linux, terminal bash de GitHub Codespaces » ; elle
    donne alors les commandes bash et des chemins en `/workspaces/…`. L'appli est assemblée
    à côté du catalogue, dans `/workspaces/<nom-de-l-appli>`.
-4. **Dépôt distant** : le jeton GitHub du Codespace ne vaut que pour le dépôt d'où le
-   Codespace est créé. Si `gh repo create` échoue (« Resource not accessible by
-   integration », 403), quitter Claude puis, dans le terminal :
+4. **Dépôt distant** : il faut d'abord connecter `gh` au compte GitHub (constaté à
+   l'essai). Le jeton GitHub du Codespace ne vaut que pour le dépôt d'où le Codespace
+   est créé : `gh` paraît connecté, mais `gh repo create` est refusé (réponse attendue :
+   « Resource not accessible by integration », 403), et `gh auth login` seul ne suffit
+   pas tant que ce jeton reste dans l'environnement. Quitter Claude puis, dans le
+   terminal :
 
    ```bash
    unset GITHUB_TOKEN
@@ -78,8 +83,7 @@ Terminal**), un terminal Linux (bash), où le catalogue est déjà cloné et ins
 
 5. **Passer du catalogue à l'appli**, dans le même Codespace : **File > Open Folder…**
    (Fichier > Ouvrir le dossier), choisir `/workspaces/<nom-de-l-appli>`. La fenêtre se
-   recharge sur les fichiers de l'appli. Claude, ouvert ensuite, y démarre une nouvelle
-   conversation, propre à l'appli, où celle du catalogue n'apparaît pas.
+   recharge sur les fichiers de l'appli.
 6. **Préparer la base** (appli avec base), dans un nouveau terminal de l'appli : Postgres
    tourne déjà (c'est celui du catalogue, partagé) ; une seule commande crée les bases et
    `.env.local`, avec l'adresse du premier admin si l'appli a la brique `comptes` :
@@ -88,10 +92,15 @@ Terminal**), un terminal Linux (bash), où le catalogue est déjà cloné et ins
    npx tsx scripts/bases-locales.ts --env-local --admin=<adresse>
    ```
 
+   Sans la brique `comptes`, la même sans `--admin=…`.
+
 7. **Lancer l'appli** (`npm run dev`) : une notification propose d'ouvrir le port 3000 dans
    le navigateur (sinon : onglet **Ports**, ligne 3000, icône du globe). Avec la brique
    `mails` en mode `console`, le code de connexion s'affiche dans le terminal du serveur.
    La connexion réussit.
+
+Claude, ouvert ensuite dans le dossier de l'appli, y démarre une nouvelle conversation,
+propre à l'appli, où celle du catalogue n'apparaît pas.
 
 ### Un Codespace par dépôt
 
@@ -99,7 +108,8 @@ La page GitHub du dépôt de l'appli ne montre pas le Codespace du catalogue : e
 d'en créer un. Ce Codespace propre à l'appli (bouton **Code** de son dépôt, onglet
 **Codespaces**) sert à reprendre le travail plus tard ou ailleurs. Il reçoit le même
 environnement, Postgres compris, puisque l'appli a reçu `.devcontainer/` (section
-suivante) ; mais sa base est vide : la préparer de nouveau avec la même commande,
+suivante) ; mais sa base est vide et `.env.local` absent (il n'est pas versionné) : les
+préparer de nouveau avec la même commande,
 `npx tsx scripts/bases-locales.ts --env-local --admin=<adresse>`.
 
 ## L'appli assemblée reçoit `.devcontainer/`
@@ -167,6 +177,9 @@ lire chez GitHub avant toute promesse.
   `import-lot`, qui font le même contrôle à la main, aussi. Seulement dans un Codespace
   (variables `CODESPACE_NAME` et `GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN`) et hors
   production : partout ailleurs, la protection reste entière (`tests/codespaces.test.ts`).
+  La connexion a été refaite à l'essai après la correction ; l'export de l'admin (`rgpd`)
+  et l'envoi d'un fichier (`import-lot`) n'y ont pas été exercés, seulement couverts par
+  leurs tests (`tests/rgpd-routes.test.ts`, `tests/import-lot-ecrans.test.ts`).
 - **Lien de connexion par e-mail** : en développement, le lien se construit sur l'hôte
   reçu, qui peut être `localhost:3000`, injoignable depuis le navigateur. La connexion
   par code, méthode par défaut, n'est pas concernée.
@@ -175,6 +188,11 @@ lire chez GitHub avant toute promesse.
 
 - Dire dans la skill `creer-appli` que Codespaces est un Linux en bash (variable
   `CODESPACES`), pour qu'elle ne demande pas le système et donne les commandes de sa
-  section 5.4.
+  section 5.4 ; qu'elle y donne, pour créer le dépôt distant, la séquence
+  `unset GITHUB_TOKEN`, `gh auth login --web --git-protocol https`, `gh auth setup-git`
+  (sa section 5.2.1 ne dit que `gh auth login`) ; et que ses commandes ont été essayées
+  dans GitHub Codespaces (Linux), plus seulement sous Git Bash.
+- Exercer dans un Codespace l'export de l'admin (`rgpd`) et l'envoi d'un fichier
+  (`import-lot`).
 - Ajouter l'écosystème `devcontainers` à `.github/dependabot.yml` pour renouveler les
   digests.
