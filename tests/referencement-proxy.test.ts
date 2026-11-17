@@ -65,4 +65,25 @@ describe("noindex par en-tête, posé par le proxy quand l'indexation n'est pas 
       expect(proxy(requete(chemin)).headers.get("x-robots-tag"), chemin).toBe(NOINDEX);
     }
   });
+
+  // Une appli assemblée d'un site public, en production sans URL_PUBLIQUE, a vu
+  // le proxy journaliser à chaque démarrage et faire échouer le chargement de
+  // ses tests de CSP : la décision du proxy ne signale rien, le signalement
+  // reste à indexationAutorisee, lue par les pages.
+  it("ne journalise rien quand il ferme un site public incomplet : la décision du proxy n'a pas d'effet de bord", async () => {
+    // Module neuf : l'avertissement de indexationAutorisee ne se dit qu'une fois
+    // par processus, un autre test l'aurait déjà consommé.
+    vi.resetModules();
+    const { enTeteRobots, REFERENCEMENT: neuf } = await import("../src/lib/referencement");
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("URL_PUBLIQUE", "");
+    Object.assign(neuf, { nom: "Exemple", sitePublic: true, description: "Un site d'exemple." });
+    const avertir = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      expect(enTeteRobots()).toBe(NOINDEX);
+      expect(avertir).not.toHaveBeenCalled();
+    } finally {
+      avertir.mockRestore();
+    }
+  });
 });

@@ -112,6 +112,13 @@ export function indexationAutorisee(config: Referencement = REFERENCEMENT): bool
 }
 let fermetureSignalee = false;
 
+// La même décision, sans le signalement : le proxy la prend à chaque requête, et
+// un journal ou un effet de bord n'a rien à y faire (le signalement reste dans
+// indexationAutorisee, que lisent les pages).
+function indexationAutoriseeSansJournal(config: Referencement): boolean {
+  return process.env.NODE_ENV === "production" && config.sitePublic && champsManquants(config).length === 0;
+}
+
 /**
  * L'en-tête X-Robots-Tag de toute réponse que voit le proxy (hors fichiers
  * statiques de Next) quand l'indexation n'est pas autorisée (src/proxy.ts), ou null quand elle l'est. La balise de
@@ -120,7 +127,7 @@ let fermetureSignalee = false;
  * fichiers.
  */
 export function enTeteRobots(config: Referencement = REFERENCEMENT): string | null {
-  return indexationAutorisee(config) ? null : "noindex, nofollow";
+  return indexationAutoriseeSansJournal(config) ? null : "noindex, nofollow";
 }
 
 // La fermeture aux moteurs tient par noindex (balise de metadonneesRacine, en-tête
