@@ -272,7 +272,10 @@ const CATALOGUE = [
   ".github/ISSUE_TEMPLATE/anomalie.md",
   ".github/ISSUE_TEMPLATE/demande.md",
   ".github/ISSUE_TEMPLATE/config.yml",
+  ".github/ISSUE_TEMPLATE/retour-d-appli.md",
   ".github/pull_request_template.md",
+  "outils/retour-catalogue.mjs",
+  "tests/retour-catalogue.test.ts",
 ];
 
 // La base suit ce qui la demande : une brique gardée qui la déclare dans `exige`.

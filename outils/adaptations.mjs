@@ -258,7 +258,9 @@ export function adaptations({ appli, catalogue, rejouer = false }) {
     // La plus récente en bas du fichier : c'est elle qui fait foi.
     const entree = entrees.findLast((candidate) => couvre(candidate, chemin));
     const note = entree === undefined ? null : { titre: entree.titre, nature: entree.nature, texte: entree.texte };
-    if (etat === "supprimé") return { chemin, unite, etat, origine: null, diff: null, note };
+    // `empreinte` : celle du fichier dans l'appli, stable quelle que soit l'origine
+    // retrouvée ; le marqueur des brouillons de retour au catalogue s'en sert.
+    if (etat === "supprimé") return { chemin, unite, etat, empreinte: null, origine: null, diff: null, note };
     const { origine, contenu } = origineDe({
       appli: dossierAppli,
       catalogue: racineCatalogue,
@@ -268,7 +270,7 @@ export function adaptations({ appli, catalogue, rejouer = false }) {
       rejouee,
     });
     const diff = contenu === undefined ? null : diffDe(chemin, contenu, contenus.get(chemin));
-    return { chemin, unite, etat, origine, diff, note };
+    return { chemin, unite, etat, empreinte: empreinte(contenus.get(chemin)), origine, diff, note };
   });
   return {
     appli: dossierAppli,
