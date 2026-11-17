@@ -1229,7 +1229,11 @@ export const DONNEES = {
 // la licence à la racine du verrou, d'où le deuxième extrait (le nom et la version le rendent unique, des dépendances
 // portent aussi « MIT ») ; il n'y recopie ni la description ni les adresses du
 // dépôt. Le nom du paquet change ensuite, par retraitsDuNom.
-export const NOM_DU_CATALOGUE = "catalogue-solstice-vibe";
+export const NOM_DU_CATALOGUE = "catalogue-solstice";
+
+// Le nom d'avant le 2026-11-17 : GitHub redirige l'ancienne adresse du dépôt, une
+// commande ou un script écrits avant le renommage la nomment encore (creer-issues).
+export const ANCIEN_NOM_DU_CATALOGUE = "catalogue-solstice-vibe";
 
 export const RETRAITS_DU_SOCLE = [
   // Les tests de l'assembleur et de l'outil de mise à jour restent au catalogue
@@ -1253,7 +1257,7 @@ export const RETRAITS_DU_SOCLE = [
   bloc(
     "package.json",
     '"description": "',
-    '"bugs": {\n    "url": "https://github.com/solstice-lab/catalogue-solstice-vibe/issues"\n  },'
+    '"bugs": {\n    "url": "https://github.com/solstice-lab/catalogue-solstice/issues"\n  },'
   ),
   remplace("package.json", '"license": "MIT"', '"license": "UNLICENSED"'),
   remplace(

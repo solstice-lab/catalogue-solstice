@@ -1,6 +1,6 @@
 ---
 name: creer-appli
-description: "Assembler une appli client depuis le catalogue Solstice-vibe (un socle et des briques) : mener le cadrage, choisir les briques que l'assembleur sait donner, écrire la blueprint de l'appli et la faire relire, lancer outils/assembler.mjs vers un dossier vide, créer son dépôt distant après accord, en créer les issues de la section 9 de la blueprint et dire à l'humain quoi taper ensuite ; puis, ces tickets faits, lister les adaptations de l'appli (outils/adaptations.mjs) et en tirer les brouillons de tickets du catalogue. À charger quand la personne qui utilise le catalogue veut créer une appli client depuis ce dépôt (pas depuis une appli client déjà assemblée)."
+description: "Assembler une appli client depuis le catalogue Solstice Lab (un socle et des briques) : mener le cadrage, choisir les briques que l'assembleur sait donner, écrire la blueprint de l'appli et la faire relire, lancer outils/assembler.mjs vers un dossier vide, créer son dépôt distant après accord, en créer les issues de la section 9 de la blueprint et dire à l'humain quoi taper ensuite ; puis, ces tickets faits, lister les adaptations de l'appli (outils/adaptations.mjs) et en tirer les brouillons de tickets du catalogue. À charger quand la personne qui utilise le catalogue veut créer une appli client depuis ce dépôt (pas depuis une appli client déjà assemblée)."
 ---
 
 # creer-appli — du cadrage à un dossier assemblé

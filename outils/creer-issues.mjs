@@ -19,7 +19,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { NOM_DU_CATALOGUE } from "./modules.mjs";
+import { ANCIEN_NOM_DU_CATALOGUE, NOM_DU_CATALOGUE } from "./modules.mjs";
 
 export class ErreurIssues extends Error {
   constructor(message) {
@@ -322,7 +322,10 @@ export function executer(
   }
   // Les issues de la section 9 sont celles d'une appli : le dépôt du catalogue
   // n'en reçoit jamais (à blanc, il reste lisible pour voir une sortie).
-  if (options.drapeaux.has("confirmer") && depot.split("/")[1].toLowerCase() === NOM_DU_CATALOGUE) {
+  if (
+    options.drapeaux.has("confirmer") &&
+    [NOM_DU_CATALOGUE, ANCIEN_NOM_DU_CATALOGUE].includes(depot.split("/")[1].toLowerCase())
+  ) {
     throw new ErreurIssues(`--confirmer refuse le dépôt du catalogue (${NOM_DU_CATALOGUE}) : donner celui de l'appli.`);
   }
 

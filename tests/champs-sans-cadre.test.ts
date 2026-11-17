@@ -6,7 +6,7 @@ import { evaluerSaisie, formatDuType, FORMATS, indexDuProchain } from "@/ui/cham
 /*
  * Champs sans cadre de la charte « registre » : un champ est du texte dans sa
  * cellule, signalé par une barre d'insertion. Le 22/10/2026, une appli
- * Solstice Vibe en React a été livrée avec des champs nus : sans la barre, le
+ * Solstice Lab en React a été livrée avec des champs nus : sans la barre, le
  * champ redevient invisible au repos. Ces tests verrouillent la logique du
  * composant `Champ` (formats, prochain champ) et l'interdiction d'un
  * `<input>` texte écrit hors de lui.

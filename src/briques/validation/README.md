@@ -144,7 +144,7 @@ qui change pour l'appelant, raison.
 
 Tout se déclare côté appli, jamais dans la brique. L'exemple suit le patron
 `dossiers` (CLAUDE.md §3), qui se lit dans le catalogue public
-(`src/lib/db/dossiers.ts` du dépôt `solstice-lab/catalogue-solstice-vibe`),
+(`src/lib/db/dossiers.ts` du dépôt `solstice-lab/catalogue-solstice`),
 pas dans l'appli : l'appli branche à sa place son propre module écrit sur ce
 patron (sa table, son droit, ses fonctions de données). Dans l'exemple, une
 proposition de **nouveau dossier** (venue d'un formulaire public, d'un rescan

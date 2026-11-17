@@ -1,7 +1,7 @@
 # Catalogue Solstice Lab
 
-[![Vérification du code](https://github.com/solstice-lab/catalogue-solstice-vibe/actions/workflows/ci.yml/badge.svg)](https://github.com/solstice-lab/catalogue-solstice-vibe/actions/workflows/ci.yml)
-[![Assemblage](https://github.com/solstice-lab/catalogue-solstice-vibe/actions/workflows/assemblage.yml/badge.svg)](https://github.com/solstice-lab/catalogue-solstice-vibe/actions/workflows/assemblage.yml)
+[![Vérification du code](https://github.com/solstice-lab/catalogue-solstice/actions/workflows/ci.yml/badge.svg)](https://github.com/solstice-lab/catalogue-solstice/actions/workflows/ci.yml)
+[![Assemblage](https://github.com/solstice-lab/catalogue-solstice/actions/workflows/assemblage.yml/badge.svg)](https://github.com/solstice-lab/catalogue-solstice/actions/workflows/assemblage.yml)
 
 Du code ouvert, éprouvé et testé pour qu'une petite ou moyenne entreprise
 construise elle-même, avec Claude, l'application web dont elle a besoin :
@@ -118,8 +118,8 @@ Cloner le catalogue et assembler une appli à côté, ici avec la connexion
 (`comptes`, qui exige `mails`) et les échéances :
 
 ```
-git clone https://github.com/solstice-lab/catalogue-solstice-vibe.git
-cd catalogue-solstice-vibe
+git clone https://github.com/solstice-lab/catalogue-solstice.git
+cd catalogue-solstice
 npm ci
 node outils/assembler.mjs ../mon-appli --briques comptes,mails,echeances
 ```
@@ -159,7 +159,7 @@ Code et son extension, `gh`, l'outil de GitHub en ligne de commande, git déjà
 configuré). Il faut un compte GitHub et un compte Claude ; ni git, ni Node, ni
 Docker sur la machine.
 
-[![Ouvrir dans GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/solstice-lab/catalogue-solstice-vibe)
+[![Ouvrir dans GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/solstice-lab/catalogue-solstice)
 
 Le parcours, en bref ; le parcours détaillé, le Codespace propre à chaque dépôt
 et les limites sont dans [`docs/catalogue/codespaces.md`](docs/catalogue/codespaces.md) :

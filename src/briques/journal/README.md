@@ -190,7 +190,7 @@ la pull request qui le fait : date, ce qui change pour l'appelant, raison.
 ## La brancher
 
 Sur le modèle de `src/lib/db/dossiers.ts`, qui se lit dans le catalogue public
-(dépôt `solstice-lab/catalogue-solstice-vibe`), pas dans une appli neuve :
+(dépôt `solstice-lab/catalogue-solstice`), pas dans une appli neuve :
 
 1. La server action garde `exiger(action)` en première ligne : c'est elle qui
    établit la personne. Rien d'autre ne change dans l'action.

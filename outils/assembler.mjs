@@ -665,7 +665,7 @@ function commiterLeSocle(
   { commit, profil, gardees, ajoutees, retirees, dependabot, manifeste, formater }
 ) {
   const corps = [
-    "Assemblée par l'assembleur du catalogue Solstice-vibe. Dépôt local, sans remote : rien n'est poussé.",
+    "Assemblée par l'assembleur du catalogue Solstice Lab. Dépôt local, sans remote : rien n'est poussé.",
     "",
     ...(profil === undefined ? [] : [`Profil : ${profil}.`]),
     `Gardé : ${gardees.join(", ")}.`,
@@ -981,12 +981,12 @@ function avisDeLicence(racine) {
     "client. Ce fichier ne lui donne aucune licence et ne change rien à ses",
     "droits (son package.json la marque « UNLICENSED »).",
     "",
-    `Elle a été assemblée depuis le catalogue Solstice-vibe (${NOM_DU_CATALOGUE}),`,
+    `Elle a été assemblée depuis le catalogue Solstice Lab (${NOM_DU_CATALOGUE}),`,
     "publié sous licence MIT. Le code qui en provient reste couvert par l'avis",
     "ci-dessous, qui doit accompagner toute copie de l'application.",
     "",
     filet,
-    "Catalogue Solstice-vibe : licence MIT",
+    "Catalogue Solstice Lab : licence MIT",
     filet,
     "",
     licence,
@@ -1023,7 +1023,7 @@ const MANIFESTE = "catalogue.empreintes.json";
 // L'appli ne reçoit ni le README ni la skill qui décrivent le manifeste : il
 // se présente lui-même à qui l'ouvre dans l'appli.
 const NOTE_DU_MANIFESTE =
-  "Écrit par l'assembleur du catalogue Solstice-vibe au premier commit de l'appli, réécrit par son outil " +
+  "Écrit par l'assembleur du catalogue Solstice Lab au premier commit de l'appli, réécrit par son outil " +
   "de mise à jour à chaque report ou ajout de brique : les réglages de " +
   "l'assemblage et, pour chaque fichier venu du catalogue, son unité et l'empreinte sha256 du fichier tel " +
   "que le catalogue le donne au commit noté. Ne pas le retoucher ni le régénérer à la main : il sert à retrouver ce que " +
@@ -1177,7 +1177,7 @@ function blueprintParDefaut({ nom, commit, briques }) {
     "",
     `# Blueprint : ${nom}`,
     "",
-    "Appli assemblée depuis le catalogue Solstice-vibe. L'en-tête note le commit du",
+    "Appli assemblée depuis le catalogue Solstice Lab. L'en-tête note le commit du",
     "catalogue qu'elle a reçu en dernier (assemblage, ou report par outils/mettre-a-jour.mjs).",
     "Ce que chaque brique a changé depuis ce commit est dans son `CHANGELOG.md`, dans",
     "`src/briques/<brique>/` du catalogue.",

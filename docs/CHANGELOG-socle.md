@@ -192,3 +192,21 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   commandes proposées à la place étaient illisibles pour une personne non
   développeuse. Sous Linux, le script affichait d'abord des commandes
   PowerShell.
+
+## 2026-11-17 · Le catalogue s'appelle catalogue-solstice · Changement
+
+- **Ce qui change** : le mot « vibe » sort du nom du catalogue. Le paquet
+  (la constante de l'assembleur du catalogue) et le dépôt deviennent
+  `catalogue-solstice`, les bases locales du catalogue
+  `catalogue_solstice_test`, et la prose dit « catalogue Solstice Lab »
+  (NOTICE, blueprint et en-têtes écrits par l'assembleur compris).
+  L'outil des issues du catalogue (absent d'une appli) refuse toujours `--confirmer` sur le dépôt du
+  catalogue, sous l'un ou l'autre nom.
+- **Pour l'appli** : rien à changer. Une appli assemblée avant ce changement
+  se met à jour comme avant : l'outil rejoue chaque commit avec son propre
+  assembleur, et le paquet de l'appli porte son propre nom. Le dépôt cité
+  dans quelques README de brique et le nom du `.devcontainer/` changent : le
+  prochain report les propose, comme les phrases de la NOTICE, du CLAUDE.md et
+  des skills, sans rien d'obligatoire.
+- **Pourquoi** : décision du 2026-11-17 de retirer « vibe » du nom ; le récit
+  du projet l'avait déjà abandonné.

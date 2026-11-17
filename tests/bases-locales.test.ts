@@ -244,7 +244,7 @@ describe("nom d'une base de test", () => {
   it("accepte <appli>_test et <appli>_test_<n>, la base dédiée d'une session parallèle (appli_test de la CI, appli_test_121)", () => {
     expect(estBaseDeTest("appli_test")).toBe(true);
     expect(estBaseDeTest("appli_test_121")).toBe(true);
-    expect(estBaseDeTest("catalogue_solstice_vibe_test")).toBe(true);
+    expect(estBaseDeTest("catalogue_solstice_test")).toBe(true);
   });
 
   it("refuse une base de dev, une base sans suffixe et un nom où _test n'est pas à la fin (le compte admin effacé par un npm test sur la base de dev)", () => {
