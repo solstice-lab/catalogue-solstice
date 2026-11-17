@@ -39,7 +39,8 @@ function politiqueDeContenu(nonce: string): string {
   ].join("; ");
 }
 
-// Fermé aux moteurs, toute réponse du proxy le dit, redirections et routes comprises : la
+// Fermé aux moteurs, toute réponse que voit le proxy le dit, redirections et routes comprises
+// (son matcher exclut les fichiers statiques de Next, qui n'y passent pas) : la
 // balise noindex ne couvre que les pages HTML, et robots.txt n'interdit rien
 // (un Disallow empêcherait de lire le noindex ; src/lib/referencement.ts).
 function fermeeAuxMoteurs(reponse: NextResponse): NextResponse {

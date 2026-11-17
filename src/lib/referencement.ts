@@ -113,8 +113,8 @@ export function indexationAutorisee(config: Referencement = REFERENCEMENT): bool
 let fermetureSignalee = false;
 
 /**
- * L'en-tête X-Robots-Tag de toute réponse quand l'indexation n'est pas
- * autorisée (src/proxy.ts), ou null quand elle l'est. La balise de
+ * L'en-tête X-Robots-Tag de toute réponse que voit le proxy (hors fichiers
+ * statiques de Next) quand l'indexation n'est pas autorisée (src/proxy.ts), ou null quand elle l'est. La balise de
  * metadonneesRacine ne couvre que les pages rendues par la mise en page : cet
  * en-tête couvre aussi les redirections vers la connexion, les routes et les
  * fichiers.
