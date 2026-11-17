@@ -106,6 +106,18 @@ en reporte aux tickets, la durée de conservation comprise.
   domaine et ses pages publiques. Avec la brique comptes, l'accueil reste derrière la
   connexion et n'en est pas une ; chacune s'ouvre dans la brique (son README).
 
+**Les leçons déjà payées** (une brique ou un module métier, pas un site de quelques pages)
+- Avant de cadrer, lire dans `docs/cicatrices.md` la ou les sections du domaine (données,
+  import, accès, mails, facturation…) : le registre est dans l'appli assemblée, ou au
+  catalogue public pour une appli qui ne l'a pas. Reprendre chaque leçon qui s'applique
+  comme une exigence du ticket, avec le test qui la tiendra ; celles marquées « Non tenue »
+  ou « En partie » d'abord, puisque rien d'autre ne les retient.
+- À la livraison, une leçon désormais tenue met à jour sa ligne du registre dans la même
+  PR : « Tenue par » renvoie vers ce qui la tient (`fichier:ligne` du test ou de la règle).
+  Au catalogue, un test refuse un renvoi sur une ligne vide, une simple fermeture ou hors
+  du fichier, mais pas sur une ligne voisine ; une appli assemblée ne l'a pas : relire
+  dans tous les cas la ligne visée.
+
 ## 2. Choisir la forme la plus légère
 
 S'arrêter à la première qui répond :
