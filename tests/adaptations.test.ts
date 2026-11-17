@@ -6,6 +6,7 @@ import { adaptations, ErreurAdaptations, rapport } from "../outils/adaptations.m
 import { assembler } from "../outils/assembler.mjs";
 import { lireDesObjets } from "../outils/manifeste.mjs";
 import { mettreAJour } from "../outils/mettre-a-jour.mjs";
+import { brouillons } from "../outils/retour-catalogue.mjs";
 import {
   assemblerEnTemporaire,
   dossierTemporaireVide,
@@ -125,6 +126,22 @@ describe("outils/adaptations.mjs", { timeout: ENTIER }, () => {
     // Lecture seule : ni commit, ni fichier écrit ou retouché.
     expect(gitDans(appli, "rev-parse", "HEAD")).toBe(head);
     expect(gitDans(appli, "status", "--porcelain", "--untracked-files=all")).toBe("");
+  });
+
+  // L'enchaînement prévu : le JSON de l'outil, puis les brouillons de retour au catalogue.
+  it("donne au brouillon de retour au catalogue de quoi tirer un brouillon par note « défaut du catalogue »", () => {
+    const appli = copieDeLAppli(assemble);
+    ecrire(appli, "src/app/page.tsx", (texte) => `${texte}// L'accueil de l'appli.\n`);
+    fs.rmSync(path.join(appli, "docs", "cicatrices.md"));
+    ecrire(appli, "src/lib/navigation.ts", (texte) => `${texte}// Retouche de l'appli, sans note.\n`);
+    ecrire(appli, "ADAPTATIONS.md", (texte) => texte + NOTE);
+    commiter(appli, "Appli : un défaut du catalogue et une retouche sans note");
+
+    const json = JSON.parse(JSON.stringify(adaptations({ catalogue: SOURCE, appli })));
+    const rendus = brouillons(json, { depot: "exemple/catalogue" });
+    expect(rendus.map(({ fichiers }) => fichiers)).toEqual([["docs/cicatrices.md", "src/app/page.tsx"]]);
+    expect(rendus[0].corps).toContain("+// L'accueil de l'appli.");
+    expect(brouillons(json, { depot: "exemple/catalogue", existants: [rendus[0].corps] })).toEqual([]);
   });
 
   it("donne avec --json ce que rend la fonction, pour les outils suivants", () => {

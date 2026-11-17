@@ -101,7 +101,10 @@ les options écartées sont dans `.claude/skills/solstice-nouvelle-appli/socle.m
   conception
   (`mise-a-jour.md`), l'outil des adaptations (`adaptations.mjs`, en lecture seule : les
   fichiers venus du catalogue qu'une appli a retouchés, avec leur diff et leur note ; `--json`
-  pour les outils suivants, `--rejouer` pour un diff exact, voir son `--aide`) et la
+  pour les outils suivants, `--rejouer` pour un diff exact, voir son `--aide`), les
+  brouillons de retour au catalogue (`retour-catalogue.mjs`, fonction pure qui tire de ce
+  `--json` un brouillon de ticket par note « défaut du catalogue », avec le lien qui
+  préremplit le modèle `retour-d-appli.md` du catalogue) et la
   lecture du manifeste que `mettre-a-jour.mjs` et `adaptations.mjs` partagent (`manifeste.mjs`), propres au catalogue : une appli
   assemblée ne les reçoit pas.
 - `scripts/` — squelette des imports et correctifs de données : dry-run par

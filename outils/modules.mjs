@@ -72,6 +72,9 @@ export const EXCLUS_DU_CATALOGUE = [
   // Verrouille l'outil des adaptations (outils/adaptations.mjs), absent de
   // l'appli ; il assemble une appli, mais une seule : il tourne avec npm test.
   "tests/adaptations.test.ts",
+  // Verrouille les brouillons de retour au catalogue
+  // (outils/retour-catalogue.mjs), outil absent de l'appli.
+  "tests/retour-catalogue.test.ts",
   // Verrouille l'outil des issues de la section 9 (outils/creer-issues.mjs),
   // absent de l'appli : sans lui, ce test ne trouverait rien à importer.
   "tests/creer-issues.test.ts",
