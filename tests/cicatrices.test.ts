@@ -194,6 +194,13 @@ function problemes(renvois: Renvoi[], lireFichier: (fichier: string) => string |
       continue;
     }
     if (expression === null) continue;
+    // Un accent grave seul s'apparie, au rendu, avec le suivant de la cellule et
+    // met en code ce qui n'en est pas.
+    if ((expression.match(/`/g) ?? []).length % 2 === 1) {
+      erreurs.add(
+        `${ou} : « ${expression} » a un nombre impair d'accents graves ; couper avant ou après le groupe de code`
+      );
+    }
     const r = { fichier, expression };
     if (estUnTest(r.fichier)) {
       const n = intitules(contenu).filter((titre) => titre.includes(r.expression)).length;
@@ -398,6 +405,14 @@ describe("renvois de docs/cicatrices.md", () => {
       expect(erreursDe("`tests/disparu.test.ts` « a » ; `tests/disparu.test.ts`")).toHaveLength(1);
       // Un nom sans chemin vaut le fichier de la skill nommée avant lui : absent, il est refusé.
       expect(erreursDe("`solstice-ui` (`inconnu.md`)")[0]).toMatch(/inconnu\.md n'existe pas/);
+    });
+
+    it("refuse une expression au nombre impair d'accents graves, qui casserait le rendu de la cellule", () => {
+      expect(erreursDe("`src/exemple.ts` « function fermeeAuxMoteurs »")).toEqual([]);
+      // Des accents graves par paires ne sont pas refusés pour cela (l'expression, absente, l'est pour une autre raison).
+      expect(erreursDe("`src/exemple.ts` « `function` fermeeAuxMoteurs »").join()).not.toMatch(/impair/);
+      const erreurs = erreursDe("`src/exemple.ts` « function `fermeeAuxMoteurs »");
+      expect(erreurs.some((e) => /nombre impair d'accents graves/.test(e))).toBe(true);
     });
 
     it("refuse une expression sans fichier avant elle", () => {
