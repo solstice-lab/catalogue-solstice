@@ -37,7 +37,7 @@ function lireRenvois(texte: string): Renvoi[] {
     let skill: string | null = null;
     let fichierCourant: string | null = null;
     const motif =
-      /(solstice-[a-z-]+)|(relecteur-[a-z]+)|`?((?:[\w./[\]()-]+\.(?:tsx?|md|mjs|json|css|sql|ya?ml|js)|\.gitignore))?:(\d+)`?/g;
+      /(solstice-[a-z-]+|creer-appli)|(relecteur-[a-z]+)|`?((?:[\w./[\]()-]+\.(?:tsx?|md|mjs|json|css|sql|ya?ml|js)|\.gitignore))?:(\d+)`?/g;
     for (const m of contenu.matchAll(motif)) {
       if (m[1]) {
         skill = m[1];
@@ -195,7 +195,7 @@ describe("renvois fichier:ligne de docs/cicatrices.md", () => {
 
   it("rattache `:12` seul au fichier nommé juste avant, et `SKILL.md:12` à la skill nommée avant lui", () => {
     const renvoisLus = lireRenvois(
-      "| X | r | c | `tests/a.test.ts:3`, `:9` ; `solstice-ui` (`SKILL.md:5`, `:6`) ; relecteur-docs (`:4`) |"
+      "| X | r | c | `tests/a.test.ts:3`, `:9` ; `solstice-ui` (`SKILL.md:5`, `:6`) ; relecteur-docs (`:4`) ; `creer-appli` (`SKILL.md:7`) |"
     );
     expect(renvoisLus.map((r) => [r.fichier, r.ligne])).toEqual([
       ["tests/a.test.ts", 3],
@@ -203,6 +203,7 @@ describe("renvois fichier:ligne de docs/cicatrices.md", () => {
       [path.join(SKILLS, "solstice-ui", "SKILL.md"), 5],
       [path.join(SKILLS, "solstice-ui", "SKILL.md"), 6],
       [path.join(".claude", "agents", "relecteur-docs.md"), 4],
+      [path.join(SKILLS, "creer-appli", "SKILL.md"), 7],
     ]);
   });
 });
