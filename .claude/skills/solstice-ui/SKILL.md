@@ -117,7 +117,8 @@ Deux couches, à ne jamais mélanger :
 - **Le nom d'un fichier téléchargé supporte tout caractère** : une apostrophe
   typographique dans le nom faisait répondre une erreur 500. L'en-tête
   `Content-Disposition` porte un nom de repli sûr (`filename=`) et le vrai nom
-  encodé (`filename*=UTF-8''…`, par `encodeURIComponent`) ; un nom fixe, comme
+  encodé (`filename*=UTF-8''…`, par `encodeURIComponent`, en encodant aussi `'`, `(`, `)` et
+  `*` : `%27`, `%28`, `%29`, `%2A`) ; un nom fixe, comme
   celui de l'export de la brique `rgpd`, n'a pas ce risque.
 - **Un formulaire en deux temps n'a qu'un état, celui de la dernière
   réponse** : adresse puis code, renvoi compris, par une seule action aiguillée
