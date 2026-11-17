@@ -256,6 +256,35 @@ la description, puis :
    l'ouverture à de vrais membres, pas le déploiement. S'il y a lieu, un ticket de plus
    écrit le bandeau « instance de recette » tant que les mentions sont incomplètes.
 
+   **Les leçons du registre** s'écrivent en tête de la section 9, avant `### 9.1`, sous un
+   sous-titre `### Leçons du registre` que l'outil des issues ne lit pas : un tableau
+   (numéro de la leçon dans `docs/cicatrices.md`, règle en une ligne, étape 9.n qui la tient).
+   Le registre reste la source : ne pas le recopier. Chaque étape concernée porte aussi, dans
+   son contenu, une ligne « Leçons du registre : C2, C3… » avec la règle courte : c'est elle
+   qui arrive dans l'issue, le tableau n'est que l'index. Les deux se recoupent.
+
+   **Ce qu'on y retient** : ce que le catalogue ne tient pas à la place de l'appli, pas toutes
+   les leçons des sections touchées (une appli ordinaire en touche une centaine, déjà tenues
+   pour la plupart, et un tableau de cette taille n'est pas lu).
+   - Les leçons « Non tenue » ou « En partie » (colonne « Tenue par » du registre), quand
+     l'appli fait ce dont elles parlent : un calcul, une facturation, un import, de l'IA, une
+     donnée sensible, un envoi de mails.
+   - Celles qu'une règle écrite seule tient (une ligne de skill ou du `CLAUDE.md`, sans test)
+     quand l'appli écrit du code dans ce domaine : son module métier, son schéma, ses écrans.
+     La méthode du harnais (section Méthode et gardes de Claude), que les skills font suivre
+     d'office, n'y entre que si elle est « Non tenue » ou « En partie ».
+   - Pas celles qu'un test reçu avec le socle ou une brique verrouille : elles sont tenues.
+   Sans leçon à retenir, dire « aucune » et pourquoi.
+
+   **Où chercher** : les sections du registre que l'appli touche : la base (Données et
+   migrations, Tests et bases locales), tout module métier, ses calculs (Calcul métier), ses
+   dates (Dates et fuseaux), son interface ; `comptes`, `gestion-comptes`, `espaces` (Accès et
+   comptes), `rgpd` et `journal` (Données personnelles) ; `import-lot` (Import de fichiers,
+   Rapprochement d'identité) ; `validation` (Circuit de validation) ; `mails`, `contact`,
+   `notifications` (Envoi de mails et rappels) ; `deploiement` (Déploiement et hébergement) ;
+   selon le cadrage, Documents sortants et facturation, Fichiers joints, IA et tâches
+   longues, Sources externes et synchronisations ; toujours Méthode et gardes de Claude.
+
    **Format lu par l'outil des issues** (`outils/creer-issues.mjs`, étape 6 de `SKILL.md`) :
    un paragraphe d'introduction libre, puis une étape par sous-titre `### 9.n Titre`, numérotée
    9.1, 9.2… sans trou, dans l'ordre où elles se font. Sous chaque titre :
@@ -277,10 +306,18 @@ la description, puis :
 
    Chaque étape est un ticket, dans cet ordre, avec la skill `solstice-livrer`.
 
+   ### Leçons du registre
+
+   | N° | Règle | Étape |
+   | --- | --- | --- |
+   | C1 | Deux séries (prévu et acquis) ne s'additionnent jamais en silence | 9.3 |
+   | C2 | Une grandeur ne se prend qu'à une source | 9.3 |
+   | C10 | Un taux ne se stocke pas : il se recalcule depuis ses deux termes | 9.3 |
+
    ### 9.1 Socle prêt pour la prod
 
    Vérifier ce que l'assembleur a écrit de l'en-tête, régler `src/lib/format.ts`, retirer
-   `"demo"` de `METHODES` (avec la brique `comptes`). Première PR fusionnée : la mise en ligne (9.3) en dépend.
+   `"demo"` de `METHODES` (avec la brique `comptes`). Première PR fusionnée : la mise en ligne (9.4) en dépend.
 
    Vérifiable à l'écran : le titre de l'onglet porte le nom affiché de l'appli, et `/connexion`
    ne propose plus la démo.
@@ -293,7 +330,16 @@ la description, puis :
    Vérifiable à l'écran : `/connexion` accepte une adresse qui n'est dans aucune liste.
    Bloqué par : 9.1
 
-   ### 9.3 Mise en ligne
+   ### 9.3 Suivi des budgets
+
+   Construire l'entité de la section 2 en copiant le patron `dossiers`, et le calcul du reste à dépenser.
+
+   Leçons du registre : C1 (prévu et acquis ne s'additionnent pas en silence), C2 (une grandeur ne se prend qu'à une source), C10 (le taux se recalcule, il ne se stocke pas).
+
+   Vérifiable à l'écran : un budget saisi affiche son reste à dépenser, calculé depuis le prévu et l'acquis.
+   Bloqué par : 9.2
+
+   ### 9.4 Mise en ligne
 
    Avec la brique `deploiement` : les gestes de son README (Blueprint Render, variables, secret).
 

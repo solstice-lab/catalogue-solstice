@@ -175,6 +175,23 @@ describe("lecture de la section 9", () => {
     );
     expect(lireLesEtapes(texte)[0].contenu).toContain("#### Détail");
   });
+
+  it("ignore ce qui précède la première étape (la blueprint y met l'index des leçons du registre) et garde la ligne « Leçons du registre » d'une étape dans son corps d'issue", () => {
+    const texte = BLUEPRINT.replace(
+      "Chaque étape est un ticket, dans cet ordre.",
+      "Chaque étape est un ticket, dans cet ordre.\n\n### Leçons du registre\n\n| N° | Règle | Étape |\n| --- | --- | --- |\n| C4 | Une règle | 9.3 |"
+    ).replace(
+      "Entités colocation et adhésion.",
+      "Entités colocation et adhésion.\n\nLeçons du registre : C4 (une règle)."
+    );
+    const etapes = lireLesEtapes(texte);
+    expect(etapes.map((e: { reference: string }) => e.reference)).toEqual(["9.1", "9.2", "9.3"]);
+    expect(etapes[0].contenu).not.toContain("C4");
+    expect(etapes[2].contenu).toContain("Leçons du registre : C4 (une règle).");
+    const corps = planDesIssues(etapes, { premierNumero: 10 }).map((e: { corps: string }) => e.corps);
+    expect(corps[2]).toContain("Leçons du registre : C4 (une règle).");
+    expect(corps[0]).not.toContain("| C4 |");
+  });
 });
 
 describe("corps des issues", () => {
