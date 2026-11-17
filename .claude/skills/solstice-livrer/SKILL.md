@@ -64,6 +64,13 @@ Corriger, puis rejouer **toutes** les vérifications.
   ce qui a été écarté. Seulement les fichiers de la tâche.
 - PR (`gh pr create`) : `Closes #n`, les vérifications lancées, **qui a vérifié quoi et ce
   qui ne l'a pas été**, ce que la fusion déclenche (déploiement, migration).
+- **Une PR qui corrige un défaut rencontré à l'usage** (incident, anomalie trouvée dans une
+  appli, pendant un essai ou une recette, constat d'audit) ajoute ou met à jour une ligne de
+  `docs/cicatrices.md` dans la même PR : la règle, le cas (sans nom, sans numéro de ticket ni
+  de PR), ce qui la tient. Sans cela la leçon reste dans un commentaire du code, où personne
+  ne la cherche au cadrage suivant. Une appli assemblée l'ajoute à sa copie du registre (numéro « X »,
+  voir « Ajouter une ligne » en tête du registre) et la note dans `ADAPTATIONS.md`. Sans leçon à
+  retenir (faute de frappe, évolution), le dire dans la PR : « sans objet », et pourquoi.
 - CI lue sans boucle d'attente. Branche à mettre à jour : `git rebase origin/main`, puis
   `git push --force-with-lease`, **sur sa propre branche seulement**. Deux branches qui
   ajoutent une migration : la rejouer en local après le rebase.
