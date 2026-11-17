@@ -25,8 +25,18 @@
  *   l'empreinte de la note et des fichiers qu'elle couvre (voir marqueurDe).
  *   Un brouillon fermé sans être envoyé garde son marqueur : il ne revient pas.
  *   Une retouche reprise depuis en donne un nouveau, à juger de nouveau.
+ *
+ * Lancé en ligne de commande par l'action du catalogue
+ * (.github/actions/retour-catalogue), que la CI de l'appli appelle à chaque
+ * arrivée sur main : il lit les adaptations, puis dépose les brouillons
+ * nouveaux dans les issues de l'appli (deposer). Le fichier de CI de l'appli
+ * est écrit par l'assembleur (fichierDeCI).
+ *
+ *   node outils/retour-catalogue.mjs <dossier-de-l-appli> --depot <propriétaire/nom>
  */
 import { createHash } from "node:crypto";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 export class ErreurRetour extends Error {
   constructor(message) {
@@ -322,4 +332,264 @@ export function brouillons(resultat, { depot, existants = [] }) {
     });
   }
   return rendus;
+}
+
+// --------------------------------------------------------- le fichier de CI de l'appli
+
+// L'action composite du catalogue, que la CI de l'appli appelle : l'appli n'a
+// pas outils/, et le verrou des renvois (tests/aide-assemblage.ts) refuse
+// qu'un fichier qu'elle reçoit le cite. Elle cite une action publique,
+// versionnée, que GitHub télécharge avec tout le dépôt au commit dit ; c'est
+// l'action, dans le catalogue, qui connaît le chemin de cet outil.
+export const ACTION = ".github/actions/retour-catalogue";
+export const FICHIER_DE_CI = ".github/workflows/retour-catalogue.yml";
+const SHA = /^[0-9a-f]{40}$/;
+
+/**
+ * Le dépôt GitHub du catalogue, « propriétaire/nom », lu dans le champ
+ * `repository` de son package.json : la seule source de son nom, que le
+ * renommage du dépôt met à jour, et d'où découlent la ligne `uses:` du fichier
+ * de CI de l'appli et les liens de ses brouillons. Un catalogue dérivé (fork)
+ * qui y met son dépôt reçoit les tickets de ses applis.
+ */
+export function depotDuCatalogue(paquet) {
+  const url = typeof paquet?.repository === "string" ? paquet.repository : paquet?.repository?.url;
+  const trouve = /github\.com[/:]([A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+?)(?:\.git)?\/?$/.exec(url ?? "");
+  if (!trouve) {
+    throw new ErreurRetour(
+      "Le champ repository du package.json du catalogue ne donne pas un dépôt GitHub : " +
+        "le fichier de CI du retour au catalogue ne saurait pas quelle action appeler."
+    );
+  }
+  return trouve[1];
+}
+
+/**
+ * Le fichier de CI que l'assembleur écrit dans l'appli (FICHIER_DE_CI).
+ * `commit` : le SHA complet du catalogue à l'assemblage. Du code du catalogue
+ * tourne ici avec un jeton qui écrit des issues : épinglé au commit de
+ * l'assemblage, il ne change qu'avec une mise à jour, que l'appli relit dans
+ * sa pull request, et jamais avec ce que le catalogue fusionne (prendre main
+ * aurait exécuté tout commit du catalogue dans toutes les applis). C'est aussi
+ * le commit auquel le manifeste compare les fichiers.
+ * `checkout` : la ligne `actions/checkout@<sha> # vX` de ci.yml, reprise telle
+ * quelle pour qu'une montée de version ne se fasse qu'à un endroit.
+ */
+export function fichierDeCI({ depot, commit, checkout }) {
+  if (!DEPOT.test(depot ?? "")) throw new ErreurRetour(`« ${depot} » n'est pas un dépôt GitHub propriétaire/nom.`);
+  if (!SHA.test(commit ?? "")) {
+    throw new ErreurRetour(`« ${commit} » n'est pas un SHA complet : l'action du catalogue s'épingle par son commit.`);
+  }
+  if (!/^actions\/checkout@[0-9a-f]{40}( #.*)?$/.test(checkout ?? "")) {
+    throw new ErreurRetour(`« ${checkout} » n'est pas une action checkout épinglée par SHA.`);
+  }
+  return [
+    "name: Retour au catalogue",
+    "",
+    "# Écrit par l'assembleur du catalogue et renouvelé par chaque mise à jour depuis",
+    "# le catalogue ; comme tout fichier venu du catalogue, une retouche se note dans",
+    "# ADAPTATIONS.md.",
+    "#",
+    "# À chaque arrivée sur main, dépose dans les issues de ce dépôt (étiquette",
+    `# ${ETIQUETTE}) un brouillon de ticket par note d'ADAPTATIONS.md de nature`,
+    `# « ${NATURE} ». Rien ne part vers le catalogue, qui est public : le`,
+    "# brouillon porte un lien qu'une personne ouvre, après en avoir retiré ce qui",
+    "# nomme le client ou une règle métier. Fermer un brouillon l'écarte pour de bon.",
+    "#",
+    "# L'action vient du catalogue, épinglée au commit de l'assemblage ou de la",
+    "# dernière mise à jour : le code qui tourne ici avec le droit d'écrire des issues",
+    "# ne change qu'avec une mise à jour relue dans une pull request. Issues fermées",
+    "# au dépôt ou refusées au jeton : le passage le dit et s'arrête, sans échec.",
+    "",
+    "on:",
+    "  push:",
+    "    branches: [main]",
+    "  workflow_dispatch:",
+    "",
+    "# Un passage à la fois : deux passages simultanés déposeraient deux fois le même",
+    "# brouillon.",
+    "concurrency:",
+    "  group: retour-au-catalogue",
+    "  cancel-in-progress: false",
+    "",
+    "# Lire le dépôt, écrire les issues : rien d'autre, et aucun secret.",
+    "permissions:",
+    "  contents: read",
+    "  issues: write",
+    "",
+    "jobs:",
+    "  brouillons:",
+    "    runs-on: ubuntu-latest",
+    "    timeout-minutes: 10",
+    "    steps:",
+    `      - uses: ${checkout}`,
+    "        with:",
+    "          # L'historique entier : le diff d'une retouche part du fichier tel que",
+    "          # l'assemblage l'a donné, retrouvé dans les commits de l'appli.",
+    "          fetch-depth: 0",
+    "          persist-credentials: false",
+    `      - uses: ${depot}/${ACTION}@${commit}`,
+    "        with:",
+    `          catalogue: ${depot}`,
+    "",
+  ].join("\n");
+}
+
+// --------------------------------------------------------- le dépôt dans les issues
+
+export class ErreurAPI extends Error {
+  constructor(message, statut) {
+    super(message);
+    this.name = "ErreurAPI";
+    this.statut = statut;
+  }
+}
+
+/**
+ * Dépose les brouillons nouveaux dans les issues de l'appli.
+ * `api` : { corpsDesIssues(etiquette), creerLEtiquette(etiquette), creerLIssue({ titre, corps, etiquettes }) },
+ * qui lèvent ErreurAPI sur un refus de GitHub. Un refus (issues fermées au
+ * dépôt, jeton sans le droit) ne fait pas échouer le passage : l'appli n'a rien
+ * cassé, elle n'a simplement pas d'issues où déposer.
+ */
+export async function deposer({ resultat, depot, api }) {
+  const avertissements = [];
+  const crees = [];
+  const refus = (erreur, etape) => {
+    if (!(erreur instanceof ErreurAPI)) throw erreur;
+    avertissements.push(
+      `Les issues du dépôt ont refusé ${etape} (${erreur.message}) : issues fermées au dépôt, ou jeton sans le droit ` +
+        "issues: write. Rien n'est déposé ; les adaptations se lisent toujours dans ADAPTATIONS.md."
+    );
+  };
+  let existants;
+  try {
+    existants = await api.corpsDesIssues(ETIQUETTE);
+  } catch (erreur) {
+    refus(erreur, "la lecture des brouillons existants");
+    return { crees, avertissements };
+  }
+  const nouveaux = brouillons(resultat, { depot, existants });
+  if (nouveaux.length === 0) return { crees, avertissements };
+  try {
+    await api.creerLEtiquette(ETIQUETTE);
+    for (const { titre, corps } of nouveaux) {
+      await api.creerLIssue({ titre, corps, etiquettes: [ETIQUETTE] });
+      crees.push(titre);
+    }
+  } catch (erreur) {
+    refus(erreur, "la création d'un brouillon");
+  }
+  return { crees, avertissements };
+}
+
+// L'API REST de GitHub, avec le jeton du passage. L'étiquette qui existe déjà (422) n'est pas un refus.
+function apiDeGitHub({ jeton, depotAppli, racine = "https://api.github.com" }) {
+  const appeler = async (methode, chemin, corps) => {
+    const reponse = await fetch(`${racine}/repos/${depotAppli}${chemin}`, {
+      method: methode,
+      headers: {
+        accept: "application/vnd.github+json",
+        authorization: `Bearer ${jeton}`,
+        "x-github-api-version": "2022-11-28",
+        ...(corps === undefined ? {} : { "content-type": "application/json" }),
+      },
+      body: corps === undefined ? undefined : JSON.stringify(corps),
+    });
+    if (!reponse.ok) throw new ErreurAPI(`${methode} ${chemin} : ${reponse.status}`, reponse.status);
+    return reponse.status === 204 ? null : reponse.json();
+  };
+  return {
+    async corpsDesIssues(etiquette) {
+      const corps = [];
+      for (let page = 1; ; page++) {
+        const lot = await appeler(
+          "GET",
+          `/issues?labels=${encodeURIComponent(etiquette)}&state=all&per_page=100&page=${page}`
+        );
+        corps.push(...lot.map((issue) => issue.body ?? ""));
+        if (lot.length < 100) return corps;
+      }
+    },
+    async creerLEtiquette(etiquette) {
+      try {
+        await appeler("POST", "/labels", {
+          name: etiquette,
+          color: "c5def5",
+          description: "Brouillon de ticket pour le catalogue, à relire avant de l'envoyer",
+        });
+      } catch (erreur) {
+        if (!(erreur instanceof ErreurAPI && erreur.statut === 422)) throw erreur;
+      }
+    },
+    async creerLIssue({ titre, corps, etiquettes }) {
+      await appeler("POST", "/issues", { title: titre, body: corps, labels: etiquettes });
+    },
+  };
+}
+
+// --------------------------------------------------------- ligne de commande
+
+const AIDE = `Usage : node outils/retour-catalogue.mjs <dossier-de-l-appli> --depot <propriétaire/nom>
+
+Lancé par l'action du catalogue (.github/actions/retour-catalogue) dans la CI
+d'une appli assemblée : dépose dans ses issues (étiquette ${ETIQUETTE}) un
+brouillon par note d'ADAPTATIONS.md de nature « ${NATURE} », s'il n'y est pas
+déjà. --depot : le dépôt du catalogue où les liens des brouillons ouvrent le
+ticket. Lit GITHUB_TOKEN, GITHUB_REPOSITORY et GITHUB_API_URL.
+Un dossier qui n'est pas une appli assemblée : rien à déposer, sans échec.`;
+
+async function main(argv) {
+  if (argv.length === 0 || argv.includes("--aide") || argv.includes("-h")) {
+    console.log(AIDE);
+    return;
+  }
+  const rang = argv.indexOf("--depot");
+  const depot = rang === -1 ? undefined : argv[rang + 1];
+  const positionnels = argv.filter((argument, i) => !argument.startsWith("-") && i !== rang + 1);
+  if (depot === undefined || !DEPOT.test(depot) || positionnels.length !== 1) {
+    throw new ErreurRetour(`Un dossier d'appli et --depot <propriétaire/nom> attendus.\n\n${AIDE}`);
+  }
+  // Importé ici : l'assembleur importe ce module, et l'outil des adaptations
+  // importe l'assembleur.
+  const { adaptations, ErreurAdaptations } = await import("./adaptations.mjs");
+  let resultat;
+  try {
+    // Sans catalogue où chercher l'origine : celle de l'historique de l'appli
+    // suffit au brouillon (l'action n'a pas l'historique du catalogue).
+    resultat = adaptations({ appli: positionnels[0] });
+  } catch (erreur) {
+    if (!(erreur instanceof ErreurAdaptations)) throw erreur;
+    console.log(`::notice::Pas une appli assemblée lisible, rien à déposer : ${erreur.message.replace(/\n/g, " ")}`);
+    return;
+  }
+  const { GITHUB_TOKEN: jeton, GITHUB_REPOSITORY: depotAppli, GITHUB_API_URL: racine } = process.env;
+  if (!jeton || !depotAppli) {
+    throw new ErreurRetour(
+      "GITHUB_TOKEN et GITHUB_REPOSITORY attendus : l'outil se lance depuis l'action du catalogue."
+    );
+  }
+  const { crees, avertissements } = await deposer({
+    resultat,
+    depot,
+    api: apiDeGitHub({ jeton, depotAppli, racine: racine || undefined }),
+  });
+  for (const avertissement of [...resultat.avertissements, ...avertissements]) {
+    console.log(`::warning::${avertissement.replace(/\n/g, " ")}`);
+  }
+  console.log(
+    crees.length === 0
+      ? "Aucun brouillon nouveau pour le catalogue."
+      : `Brouillons déposés (${ETIQUETTE}) :\n${crees.map((titre) => `- ${titre}`).join("\n")}`
+  );
+}
+
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main(process.argv.slice(2)).catch((erreur) => {
+    if (erreur instanceof ErreurRetour) {
+      console.error(`Retour au catalogue refusé : ${erreur.message}`);
+      process.exit(1);
+    }
+    throw erreur;
+  });
 }

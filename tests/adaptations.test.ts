@@ -6,7 +6,7 @@ import { adaptations, ErreurAdaptations, rapport } from "../outils/adaptations.m
 import { assembler } from "../outils/assembler.mjs";
 import { lireDesObjets } from "../outils/manifeste.mjs";
 import { mettreAJour } from "../outils/mettre-a-jour.mjs";
-import { brouillons } from "../outils/retour-catalogue.mjs";
+import { ACTION, brouillons, depotDuCatalogue, FICHIER_DE_CI } from "../outils/retour-catalogue.mjs";
 import {
   assemblerEnTemporaire,
   dossierTemporaireVide,
@@ -144,6 +144,26 @@ describe("outils/adaptations.mjs", { timeout: ENTIER }, () => {
     expect(brouillons(json, { depot: "exemple/catalogue", existants: [rendus[0].corps] })).toEqual([]);
   });
 
+  // Le déclencheur du retour, livré à l'appli : sa CI lance l'outil à chaque arrivée sur main.
+  it("livre à l'appli le fichier de CI du retour au catalogue, au manifeste, l'action épinglée au commit de l'assemblage", () => {
+    const manifeste = JSON.parse(fs.readFileSync(path.join(assemble, MANIFESTE), "utf-8"));
+    expect(manifeste.fichiers[FICHIER_DE_CI]).toMatchObject({ unite: "socle" });
+    const paquet = JSON.parse(fs.readFileSync(path.join(SOURCE, "package.json"), "utf-8"));
+    const depot = depotDuCatalogue(paquet);
+    const fichier = fs.readFileSync(path.join(assemble, FICHIER_DE_CI), "utf-8");
+    expect(fichier).toContain(`      - uses: ${depot}/${ACTION}@${manifeste.catalogue.commitComplet}\n`);
+    expect(fichier).toContain(`          catalogue: ${depot}\n`);
+    // La même action checkout que ci.yml : une montée de version ne se fait qu'à un endroit.
+    const checkout = /- uses: (actions\/checkout@\S+)/.exec(
+      fs.readFileSync(path.join(SOURCE, ".github", "workflows", "ci.yml"), "utf-8")
+    )?.[1];
+    expect(fichier).toContain(`- uses: ${checkout}`);
+    // Ni l'action ni l'outil ne partent avec l'appli : elle les appelle au catalogue.
+    expect(fs.existsSync(path.join(assemble, ACTION))).toBe(false);
+    // Intact, il n'est pas une adaptation.
+    expect(adaptations({ catalogue: SOURCE, appli: copieDeLAppli(assemble) }).adaptations).toEqual([]);
+  });
+
   it("donne avec --json ce que rend la fonction, pour les outils suivants", () => {
     const appli = copieDeLAppli(assemble);
     ecrire(appli, "src/lib/navigation.ts", (texte) => `${texte}// Retouche.\n`);
@@ -232,6 +252,10 @@ describe("outils/adaptations.mjs", { timeout: ENTIER }, () => {
       const vers = gitDans(catalogue, "rev-parse", "--short", "HEAD");
       const reporte = mettreAJour({ catalogue, appli, vers, branche: "feature/reporter-catalogue" });
       expect(reporte.fichiers.fusionnes).toEqual([NAVIGATION]);
+      // Le fichier de CI du retour, intact, suit le catalogue : l'action s'épingle au commit visé.
+      expect(reporte.fichiers.remplaces).toContain(FICHIER_DE_CI);
+      const commitVise = gitDans(catalogue, "rev-parse", "HEAD");
+      expect(fs.readFileSync(path.join(appli, FICHIER_DE_CI), "utf-8")).toContain(`/${ACTION}@${commitVise}\n`);
       commiter(appli, "Catalogue : report");
 
       // Sans le rejeu : depuis le fichier du catalogue, que l'assembleur retouche (briques absentes).

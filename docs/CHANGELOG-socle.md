@@ -235,3 +235,25 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   lit donc jamais son `noindex` : une adresse vue ailleurs peut être indexée
   sans contenu. Des liens à jeton donnés à des clients d'une appli livrée sont
   sortis des moteurs par l'en-tête, sans `Disallow`.
+
+## 2026-11-17 · La CI de l'appli prépare le retour de ses adaptations au catalogue · Ajout
+
+- **Ce qui change** : l'assembleur écrit dans l'appli
+  `.github/workflows/retour-catalogue.yml`, inscrit au manifeste. À chaque
+  arrivée sur `main`, il dépose dans les issues de l'appli (étiquette
+  `pour-le-catalogue`) un brouillon de ticket par note d'`ADAPTATIONS.md` de
+  nature « défaut du catalogue » : fichiers, note, diff, et un lien qui
+  préremplit un ticket du catalogue. Rien ne part vers le catalogue sans
+  qu'une personne ouvre ce lien. Un brouillon déjà déposé, ouvert ou fermé,
+  ne revient pas. L'action appelée vient du dépôt du catalogue, épinglée au
+  commit de l'assemblage ; ses droits se bornent à lire le dépôt et à écrire
+  les issues, sans aucun secret.
+- **Pour l'appli** : rien à changer. Une mise à jour depuis le catalogue ajoute
+  le fichier, puis le renouvelle à chaque mise à jour (le commit épinglé suit
+  le catalogue visé). Sans GitHub Actions, il ne tourne pas ; sans issues, le
+  passage le dit et s'arrête sans échec. Une appli qui n'en veut pas le
+  supprime et le note dans `ADAPTATIONS.md`.
+- **Pourquoi** : le retour des adaptations dépendait de quelqu'un qui pense à
+  lancer l'outil des adaptations depuis le catalogue, à trier et à rédiger ;
+  sur l'appli d'essai tours-de-coloc, trois défauts du catalogue ne sont
+  remontés qu'une fois vus à l'écran.

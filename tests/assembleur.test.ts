@@ -191,6 +191,8 @@ const SOCLE = [
   ".claude/skills/solstice-ui/SKILL.md",
   ".claude/hooks/gardes.mjs",
   ".github/workflows/ci.yml",
+  // Écrit par l'assembleur : le retour des adaptations au catalogue.
+  ".github/workflows/retour-catalogue.yml",
   // ci.yml vérifie la mise en forme : sans ses réglages, Prettier prendrait
   // ses défauts et refuserait tout le code de l'appli.
   "prettier.config.mjs",
@@ -275,6 +277,7 @@ const CATALOGUE = [
   ".github/ISSUE_TEMPLATE/retour-d-appli.md",
   ".github/pull_request_template.md",
   "outils/retour-catalogue.mjs",
+  ".github/actions/retour-catalogue/action.yml",
   "tests/retour-catalogue.test.ts",
 ];
 

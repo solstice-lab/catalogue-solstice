@@ -1,9 +1,16 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  ACTION,
   brouillons,
+  deposer,
+  depotDuCatalogue,
+  ErreurAPI,
   ErreurRetour,
+  ETIQUETTE,
+  fichierDeCI,
   LONGUEUR_MAX_DU_CORPS,
   LONGUEUR_MAX_DU_LIEN,
   MODELE,
@@ -327,5 +334,142 @@ describe("outils/retour-catalogue.mjs", () => {
     for (const depot of ["", "catalogue", "https://github.com/a/b", "a/b/c", "a/b?x=1"]) {
       expect(() => brouillons(resultatDe([accueil()]), { depot })).toThrow(ErreurRetour);
     }
+  });
+});
+
+// ---------------------------------------------------------------- la CI de l'appli
+
+const SHA_DE_TEST = "fedcba9876543210fedcba9876543210fedcba98";
+const CHECKOUT = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1";
+
+describe("le fichier de CI du retour au catalogue, livré à l'appli", () => {
+  const fichier = fichierDeCI({ depot: DEPOT, commit: SHA_DE_TEST, checkout: CHECKOUT });
+
+  it("appelle l'action du catalogue épinglée au commit de l'assemblage, et lui donne le même dépôt pour ses liens", () => {
+    expect(fichier).toContain(`      - uses: ${DEPOT}/${ACTION}@${SHA_DE_TEST}\n`);
+    expect(fichier).toContain(`          catalogue: ${DEPOT}\n`);
+    expect(fichier).toContain(`      - uses: ${CHECKOUT}\n`);
+    // Une étiquette ou une branche se déplace sans relecture chez l'appli : un SHA complet seul.
+    for (const commit of ["main", "v1", "abc1234", `${SHA_DE_TEST}0`]) {
+      expect(() => fichierDeCI({ depot: DEPOT, commit, checkout: CHECKOUT })).toThrow(ErreurRetour);
+    }
+  });
+
+  it("n'a que les droits de lire le dépôt et d'écrire les issues, aucun secret, et ne tourne jamais sur une pull request ni un ticket", () => {
+    expect(fichier).toMatch(/\npermissions:\n {2}contents: read\n {2}issues: write\n\n/);
+    expect(fichier.match(/^ *[a-z-]+: (read|write)$/gm)).toEqual(["  contents: read", "  issues: write"]);
+    expect(fichier).not.toMatch(/secrets\./);
+    expect(fichier).toMatch(/\non:\n {2}push:\n {4}branches: \[main\]\n {2}workflow_dispatch:\n/);
+    expect(fichier).not.toMatch(/pull_request|issues:\n|issue_comment|workflow_run/);
+    // Aucune expression évaluée par GitHub : rien du dépôt ne peut s'injecter dans une commande.
+    expect(fichier).not.toContain("${{");
+    expect(fichier).toMatch(/persist-credentials: false/);
+    expect(fichier).toMatch(/fetch-depth: 0/);
+    expect(fichier).toMatch(/\nconcurrency:\n {2}group: [\w-]+\n {2}cancel-in-progress: false\n/);
+  });
+
+  // L'appli n'a pas outils/ : le verrou des renvois (tests/aide-assemblage.ts)
+  // refuse qu'un fichier qu'elle reçoit le cite. Elle cite une action publique.
+  it("ne cite aucun chemin d'outils/, que l'appli n'a pas", () => {
+    expect(fichier).not.toMatch(/(?<![\w./-])(?:\.{1,2}\/)*outils\/[\w./-]*/i);
+  });
+
+  it("lit le dépôt du catalogue dans le champ repository de son package.json, seule source de son nom", () => {
+    expect(depotDuCatalogue({ repository: { type: "git", url: "git+https://github.com/a-b/c.d.git" } })).toBe(
+      "a-b/c.d"
+    );
+    expect(depotDuCatalogue({ repository: "https://github.com/a/b" })).toBe("a/b");
+    expect(depotDuCatalogue({ repository: "git@github.com:a/b.git" })).toBe("a/b");
+    for (const paquet of [{}, { repository: "https://gitlab.com/a/b" }, { repository: { url: "" } }]) {
+      expect(() => depotDuCatalogue(paquet)).toThrow(ErreurRetour);
+    }
+    const paquet = JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"));
+    expect(depotDuCatalogue(paquet)).toMatch(/^[\w-]+\/[\w.-]+$/);
+  });
+
+  it("vise une action du catalogue qui existe, lance l'outil par l'environnement et reçoit le dépôt du catalogue", () => {
+    const action = fs.readFileSync(path.join(process.cwd(), ACTION, "action.yml"), "utf-8").replace(/\r\n/g, "\n");
+    expect(action).toMatch(/\n {2}using: composite\n/);
+    expect(action).toMatch(/\n {2}catalogue:\n/);
+    const run = action.slice(action.indexOf("run:"));
+    // L'outil lancé existe à ce chemin depuis le dossier de l'action, téléchargé avec tout le dépôt.
+    const [, relatif] = /"\$GITHUB_ACTION_PATH\/([^"]+)"/.exec(run) ?? [];
+    expect(path.normalize(path.join(ACTION, relatif ?? ""))).toBe(path.normalize("outils/retour-catalogue.mjs"));
+    expect(run).not.toContain("${{");
+  });
+});
+
+describe("le dépôt des brouillons dans les issues de l'appli", () => {
+  const resultat = resultatDe([docs, accueil()]);
+  type Issue = { titre: string; corps: string; etiquettes: string[] };
+
+  // L'API de GitHub, simulée : la seule frontière.
+  function apiFactice(existants: string[] = [], refus?: { etape: string; statut: number }) {
+    const appels: string[] = [];
+    const crees: Issue[] = [];
+    const echec = (etape: string) => {
+      if (refus?.etape === etape) throw new ErreurAPI(`refusé (${refus.statut})`, refus.statut);
+    };
+    return {
+      appels,
+      crees,
+      api: {
+        async corpsDesIssues(etiquette: string) {
+          appels.push(`lister ${etiquette}`);
+          echec("lister");
+          return existants;
+        },
+        async creerLEtiquette(etiquette: string) {
+          appels.push(`etiquette ${etiquette}`);
+          echec("etiquette");
+        },
+        async creerLIssue(issue: Issue) {
+          appels.push(`creer ${issue.titre}`);
+          echec("creer");
+          crees.push(issue);
+        },
+      },
+    };
+  }
+
+  it("crée les brouillons nouveaux sous l'étiquette pour-le-catalogue, et rien au passage suivant", async () => {
+    const premier = apiFactice();
+    const rendu = await deposer({ resultat, depot: DEPOT, api: premier.api });
+    expect(rendu.avertissements).toEqual([]);
+    expect(premier.crees.map(({ titre, etiquettes }) => [titre, etiquettes])).toEqual([
+      ["Pour le catalogue : 2026-11-05 · l'accueil livré vide", [ETIQUETTE]],
+    ]);
+    expect(premier.appels[0]).toBe(`lister ${ETIQUETTE}`);
+
+    const second = apiFactice(premier.crees.map(({ corps }) => corps));
+    expect((await deposer({ resultat, depot: DEPOT, api: second.api })).crees).toEqual([]);
+    expect(second.crees).toEqual([]);
+    // Rien à créer : l'étiquette n'est pas touchée.
+    expect(second.appels).toEqual([`lister ${ETIQUETTE}`]);
+  });
+
+  it("ne casse rien quand les issues sont fermées au dépôt ou refusées au jeton : il le dit et s'arrête", async () => {
+    for (const refus of [
+      { etape: "lister", statut: 410 },
+      { etape: "lister", statut: 404 },
+      { etape: "etiquette", statut: 403 },
+      { etape: "creer", statut: 403 },
+    ]) {
+      const { api, crees } = apiFactice([], refus);
+      const rendu = await deposer({ resultat, depot: DEPOT, api });
+      expect(crees).toEqual([]);
+      expect(rendu.avertissements.join("\n")).toMatch(/issues/);
+    }
+  });
+
+  it("dit sans échouer qu'un dossier n'est pas une appli assemblée (le catalogue lui-même, une appli sans manifeste)", () => {
+    const sortie = spawnSync(
+      process.execPath,
+      [path.join(process.cwd(), "outils", "retour-catalogue.mjs"), process.cwd(), "--depot", DEPOT],
+      { encoding: "utf-8", env: { ...process.env, GITHUB_TOKEN: "", GITHUB_REPOSITORY: "" } }
+    );
+    expect(sortie.stderr).toBe("");
+    expect(sortie.status).toBe(0);
+    expect(sortie.stdout).toMatch(/^::notice::.*rien à déposer/m);
   });
 });

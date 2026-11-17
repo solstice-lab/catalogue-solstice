@@ -1,0 +1,35 @@
+name: Retour au catalogue
+description: >-
+  Dépose dans les issues d'une appli assemblée un brouillon de ticket par note
+  d'ADAPTATIONS.md de nature « défaut du catalogue ». Rien ne part vers le
+  catalogue : le brouillon porte un lien qu'une personne ouvre.
+
+# Appelée par le fichier de CI que l'assembleur écrit dans l'appli
+# (.github/workflows/retour-catalogue.yml, fichierDeCI de
+# outils/retour-catalogue.mjs), épinglée au commit du catalogue de
+# l'assemblage. GitHub télécharge tout le dépôt du catalogue à ce commit :
+# l'outil se lance depuis lui, l'appli n'a pas outils/. Ce dossier n'est pas
+# copié dans l'appli (EXCLUS_DU_CATALOGUE de outils/modules.mjs).
+#
+# Les valeurs passent par l'environnement, jamais par une expression dans la
+# commande : rien du dépôt de l'appli ne s'y injecte. L'outil n'importe que des
+# modules de Node : ni npm ci ni réseau, hors l'API des issues de l'appli.
+
+inputs:
+  catalogue:
+    description: Le dépôt GitHub du catalogue, propriétaire/nom, où les liens des brouillons ouvrent le ticket.
+    required: true
+  jeton:
+    description: Le jeton qui lit et crée les issues de l'appli (issues write), celui du passage par défaut.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Déposer les brouillons pour le catalogue
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.jeton }}
+        CATALOGUE: ${{ inputs.catalogue }}
+      run: node "$GITHUB_ACTION_PATH/../../../outils/retour-catalogue.mjs" "$GITHUB_WORKSPACE" --depot "$CATALOGUE"

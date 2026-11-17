@@ -47,6 +47,7 @@ import {
   retraitsDuNom,
 } from "./modules.mjs";
 import { urlDeBaseDistante } from "../.claude/hooks/gardes.mjs";
+import { depotDuCatalogue, ErreurRetour, FICHIER_DE_CI, fichierDeCI } from "./retour-catalogue.mjs";
 
 export class ErreurAssemblage extends Error {
   constructor(message) {
@@ -1078,6 +1079,30 @@ function versionDuCatalogue(racine) {
   return JSON.parse(fs.readFileSync(path.join(racine, "package.json"), "utf-8")).version;
 }
 
+/*
+ * Le fichier de CI du retour au catalogue (outils/retour-catalogue.mjs,
+ * fichierDeCI) : écrit, et non copié, parce qu'il porte le commit du catalogue
+ * de l'assemblage. Il entre au manifeste comme un fichier venu du catalogue :
+ * la mise à jour rejoue l'assemblage au commit visé, le remplace s'il est
+ * intact (nouveau commit épinglé), l'ajoute à une appli assemblée avant lui,
+ * le fusionne s'il est retouché. Le dépôt vient du package.json du catalogue,
+ * l'action checkout de son ci.yml : chacun n'est écrit qu'à un endroit.
+ */
+function contenuDuRetourAuCatalogue(racine, commitComplet) {
+  const ci = fs.readFileSync(path.join(racine, ".github", "workflows", "ci.yml"), "utf-8");
+  const checkout = /^\s*- uses: (actions\/checkout@[0-9a-f]{40}[^\r\n]*)$/m.exec(ci)?.[1];
+  try {
+    return fichierDeCI({
+      depot: depotDuCatalogue(JSON.parse(fs.readFileSync(path.join(racine, "package.json"), "utf-8"))),
+      commit: commitComplet,
+      checkout,
+    });
+  } catch (erreur) {
+    if (erreur instanceof ErreurRetour) throw new ErreurAssemblage(erreur.message);
+    throw erreur;
+  }
+}
+
 // Le contenu de chaque fichier de l'index, en un seul appel à git.
 function contenusDeLIndex(destination) {
   const entrees = git(destination, "ls-files", "-s", "-z")
@@ -1274,6 +1299,7 @@ export function assembler({
   const contenuAvis = avisDeLicence(racine);
   const version = versionDuCatalogue(racine);
   const commitComplet = git(racine, "rev-parse", "HEAD").trim();
+  const contenuRetour = contenuDuRetourAuCatalogue(racine, commitComplet);
   // Le nom que la personne a donné (--nom ou appli de la blueprint) : le nom du
   // dossier de sortie n'en est pas un, il ne nomme pas un service chez l'hébergeur.
   const nomDonne = nom ?? (blueprint && appliDeLaBlueprint(contenuBlueprint)) ?? undefined;
@@ -1361,11 +1387,14 @@ export function assembler({
     }
     ecrits.push(chemin);
   }
+  fs.mkdirSync(path.dirname(path.join(destination, FICHIER_DE_CI)), { recursive: true });
+  fs.writeFileSync(path.join(destination, FICHIER_DE_CI), contenuRetour);
+  ecrits.push(FICHIER_DE_CI);
 
   mettreEnForme(
     prettier,
     destination,
-    ecrits.filter((chemin) => textes.has(chemin))
+    ecrits.filter((chemin) => textes.has(chemin) || chemin === FICHIER_DE_CI)
   );
 
   // Les fichiers venus du catalogue, après la mise en forme : ni ceux que
