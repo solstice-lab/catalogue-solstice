@@ -42,6 +42,14 @@ règle, le cas, et ce qui la tient (« **Non tenue** » tant que rien ne la tien
 Au catalogue, les renvois `fichier:ligne` sont verrouillés par un test ; une appli
 assemblée ne l'a pas.
 
+**Compteur** : 164 cicatrices, dont 91 tenues, 14 « En partie » et 59 « Non tenue ».
+Ce sont les seuls chiffres à citer : ils comptent les lignes du tableau du catalogue,
+tenues par le catalogue (une appli qui n'a pas gardé une brique n'en tient pas
+autant). Le catalogue les vérifie par un test, qu'une appli assemblée ne reçoit pas.
+La mise à jour de la phrase vaut au catalogue, à chaque ligne ajoutée, retirée ou
+changée de statut ; une appli assemblée n'y touche pas, et ses lignes `X…` n'y sont
+pas comptées.
+
 ## 1. Données et migrations
 
 | N° | Règle | Cas | Tenue par |

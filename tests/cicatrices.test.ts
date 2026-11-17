@@ -86,6 +86,43 @@ function problemes(renvois: Renvoi[], lireLignes: (fichier: string) => string[] 
   return erreurs;
 }
 
+// Compte les lignes du tableau par statut. Une ligne d'en-tête de colonne ou
+// de titre n'a pas d'identifiant `D1`, `ME13`… et ne compte pas.
+type Compte = { total: number; tenues: number; enPartie: number; nonTenues: number };
+
+function compterLignes(texte: string): Compte {
+  const compte: Compte = { total: 0, tenues: 0, enPartie: 0, nonTenues: 0 };
+  for (const ligne of texte.split("\n")) {
+    if (!/^\| [A-Z]+\d+ \|/.test(ligne)) continue;
+    const tenue = ligne.split(" | ").slice(3).join(" | ");
+    compte.total++;
+    if (tenue.startsWith("**Non tenue**")) compte.nonTenues++;
+    else if (tenue.startsWith("**En partie**")) compte.enPartie++;
+    else compte.tenues++;
+  }
+  return compte;
+}
+
+// Une ligne qui parle de « Non tenue » ou d'« En partie » sans commencer par
+// ce statut tomberait dans les tenues sans bruit : on la refuse plutôt.
+function statutsAmbigus(texte: string): string[] {
+  return texte
+    .split("\n")
+    .filter((ligne) => /^\| [A-Z]+\d+ \|/.test(ligne))
+    .filter((ligne) => {
+      const tenue = ligne.split(" | ").slice(3).join(" | ");
+      return /Non tenue|En partie/.test(tenue) && !/^\*\*(Non tenue|En partie)\*\*/.test(tenue);
+    })
+    .map((ligne) => ligne.slice(0, 40));
+}
+
+// Le compteur de tête : « 164 cicatrices, dont 91 tenues, 14 « En partie » et
+// 59 « Non tenue » ». Renvoie null si la phrase manque ou a changé de forme.
+function lireCompteur(texte: string): Compte | null {
+  const m = texte.match(/(\d+) cicatrices, dont (\d+) tenues, (\d+) « En partie » et (\d+) « Non tenue »/);
+  return m ? { total: +m[1], tenues: +m[2], enPartie: +m[3], nonTenues: +m[4] } : null;
+}
+
 function lireLignesDuDepot(fichier: string): string[] | null {
   const chemin = path.join(RACINE, fichier);
   return existsSync(chemin) ? readFileSync(chemin, "utf-8").split("\n") : null;
@@ -98,6 +135,40 @@ describe("renvois fichier:ligne de docs/cicatrices.md", () => {
   it("trouve les renvois du registre (sans quoi le verrou passerait sur du vide)", () => {
     expect(renvois.length).toBeGreaterThan(100);
     expect(readdirSync(path.join(RACINE, SKILLS)).length).toBeGreaterThan(0);
+  });
+
+  /*
+   * Le compteur de tête est le seul chiffre du registre : un README ou une
+   * présentation le cite, jamais ne l'arrondit. Il se vérifie ici ; ce test
+   * n'est pas copié dans une appli assemblée alors que le registre l'est, d'où
+   * une phrase qui doit rester vraie sans lui.
+   */
+  it("annonce en tête le total et la répartition réels des lignes (une présentation a annoncé « 164 leçons, chacune reliée à ce qui la tient » quand 59 n'étaient pas tenues)", () => {
+    const annonce = lireCompteur(registre);
+    const reel = compterLignes(registre);
+    const bons = `${reel.total} cicatrices, dont ${reel.tenues} tenues, ${reel.enPartie} « En partie » et ${reel.nonTenues} « Non tenue »`;
+    expect(statutsAmbigus(registre), "statut à écrire en tête de cellule : **Non tenue** ou **En partie**").toEqual([]);
+    expect(annonce, `compteur de tête absent ou mal formé ; écrire : ${bons}`).not.toBeNull();
+    expect(annonce, `compteur de tête faux ; écrire : ${bons}`).toEqual(reel);
+  });
+
+  it("recompte juste, et refuse un compteur faux (cas fautif que le verrou doit attraper)", () => {
+    const tableau = [
+      "| N° | Règle | Cas | Tenue par |",
+      "| --- | --- | --- | --- |",
+      "| D1 | r | c | `CLAUDE.md:56` |",
+      "| ME13 | r | c | **En partie** : manque x |",
+      "| T2 | r | c | **Non tenue** (pas de brique) |",
+      "| T3 | r | c | **Non tenue** |",
+    ].join("\n");
+    expect(compterLignes(tableau)).toEqual({ total: 4, tenues: 1, enPartie: 1, nonTenues: 2 });
+    expect(lireCompteur("4 cicatrices, dont 1 tenues, 1 « En partie » et 2 « Non tenue »")).toEqual(
+      compterLignes(tableau)
+    );
+    expect(lireCompteur("5 cicatrices, dont 1 tenues, 1 « En partie » et 2 « Non tenue »")).not.toEqual(
+      compterLignes(tableau)
+    );
+    expect(lireCompteur("quatre leçons")).toBeNull();
   });
 
   it("vise partout une ligne qui existe, non vide, qui n'est pas qu'une fermeture (audit du 2026-11-09 : vingt renvois sur une ligne vide ou une accolade)", () => {
