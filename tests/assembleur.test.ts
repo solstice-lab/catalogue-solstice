@@ -1040,9 +1040,17 @@ describe("assemblage de tout le catalogue", () => {
       }
       comptes++;
     }
+    // Les seuls fichiers que le catalogue n'a pas : ceux que l'assembleur écrit.
     // La blueprint, l'avis NOTICE, le registre des adaptations et le manifeste
-    // d'empreintes sont les seuls fichiers que le catalogue n'a pas.
-    expect(copies.size).toBe(comptes + 4);
+    // d'empreintes, et le fichier de CI du retour au catalogue : écrit et non
+    // copié, parce qu'il porte le commit du catalogue de l'assemblage (il entre
+    // pourtant au manifeste, pour que la mise à jour le renouvelle).
+    const ecrits = ["blueprint.md", "NOTICE", "ADAPTATIONS.md", MANIFESTE, ".github/workflows/retour-catalogue.yml"];
+    for (const chemin of ecrits) {
+      expect(copies.has(chemin), `${chemin} manque`).toBe(true);
+      expect(fs.existsSync(path.join(SOURCE, chemin)), `${chemin} ne vient pas du catalogue`).toBe(false);
+    }
+    expect(copies.size).toBe(comptes + ecrits.length);
   });
 
   // Le catalogue est publié sous MIT ; le code d'une appli client ne l'est
