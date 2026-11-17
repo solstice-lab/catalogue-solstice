@@ -27,8 +27,10 @@ title: "Retour d'une appli assemblée : "
 
 ## Leçon à inscrire au registre
 
-<!-- La règle qu'on en tire pour docs/cicatrices.md, ou « aucune ». Une leçon
-     que l'appli a ajoutée à sa copie du registre arrive dans le diff. -->
+<!-- La règle qu'on en tire, ou « aucune ». La PR du catalogue qui corrige ce
+     défaut l'inscrit à docs/cicatrices.md sous un numéro du catalogue
+     (paragraphe « Ajouter une ligne » du registre). Une ligne X… que l'appli a
+     ajoutée à sa copie du registre arrive dans le diff. -->
 
 ## Avant d'envoyer
 

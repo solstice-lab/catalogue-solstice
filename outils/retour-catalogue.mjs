@@ -160,9 +160,10 @@ function corpsPrerempli({ note, fichiers, commit, avecDiff, longueurNote, nombre
     SECTIONS.lecon,
     "",
     fichiers.some(estUneLecon)
-      ? `Proposée par l'appli : les lignes qu'elle a ajoutées à \`${REGISTRE}\` (voir le diff). ` +
-        "À relire comme une leçon, pas comme un défaut de code."
-      : `À écrire : la règle qu'on en tire pour \`${REGISTRE}\`, ou « aucune ».`,
+      ? `Proposée par l'appli : sa ligne \`X…\` ajoutée à \`${REGISTRE}\` (voir le diff), que le catalogue ` +
+        "reprend sous son propre numéro. À relire comme une leçon, pas comme un défaut de code."
+      : `À écrire : la règle qu'on en tire, que la PR du catalogue qui corrige ce défaut inscrit à \`${REGISTRE}\` ; ` +
+        "ou « aucune ».",
     "",
     SECTIONS.avant,
     "",
