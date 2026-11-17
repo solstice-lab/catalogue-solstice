@@ -141,7 +141,7 @@ les options écartées sont dans `.claude/skills/solstice-nouvelle-appli/socle.m
 - `docs/catalogue/` — la référence longue du catalogue (démarrage, assembleur,
   briques, structure) et la note sur Codespaces, propres au catalogue :
   l'assembleur ne les livre pas.
-- `docs/cicatrices.md` — le registre des leçons des projets précédents : la
+- `docs/cicatrices.md` — le registre des leçons payées (projets précédents, catalogue, applis assemblées) : la
   règle, le cas, et ce qui la tient dans le catalogue.
 - `docs/CHANGELOG-socle.md` — le journal des changements du socle (hors des
   briques, qui ont chacune le leur) : ruptures et corrections de sécurité à

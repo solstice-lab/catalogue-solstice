@@ -297,7 +297,7 @@ Claude se paie à part, comme sur un poste.
 | Se repérer dans le dépôt, connaître les vérifications à lancer avant une pull request | [`docs/catalogue/structure.md`](docs/catalogue/structure.md)                                                          |
 | Les règles de travail de Claude sur le dépôt | [`CLAUDE.md`](CLAUDE.md)                                                                                                                                           |
 | Travailler sur le dépôt (équipe)             | [`CONTRIBUTING.md`](CONTRIBUTING.md)                                                                                                                               |
-| Les leçons des projets précédents            | [`docs/cicatrices.md`](docs/cicatrices.md), et [`docs/CHANGELOG-socle.md`](docs/CHANGELOG-socle.md) pour les changements du socle                                  |
+| Les leçons payées                              | [`docs/cicatrices.md`](docs/cicatrices.md), et [`docs/CHANGELOG-socle.md`](docs/CHANGELOG-socle.md) pour les changements du socle                                  |
 
 ## Licence
 

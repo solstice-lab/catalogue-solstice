@@ -1,10 +1,12 @@
 # Registre des cicatrices
 
-Une **cicatrice** est une leçon payée sur un projet antérieur de l'équipe : un
-incident, un correctif ou une recette ratée dont on a tiré une règle. Le
-catalogue est né de ces leçons. Ce registre en garde la règle et le cas, sans
-nom de client, d'appli, de prestataire ni de personne. Les sources (l'inventaire
-des applis déjà livrées, les journaux du prototype) restent hors de ce dépôt.
+Une **cicatrice** est une leçon payée : un incident, un correctif, une anomalie
+d'essai ou de recette, un constat d'audit dont on a tiré une règle. Elle vient de
+trois sources : un projet antérieur de l'équipe (le catalogue est né de ces
+leçons), la vie du catalogue lui-même, une appli assemblée. Ce registre en garde
+la règle et le cas, sans nom de client, d'appli, de prestataire ni de personne, ni
+numéro de ticket ou de PR. Les sources antérieures (l'inventaire des applis déjà
+livrées, les journaux du prototype) restent hors de ce dépôt.
 
 Chaque ligne donne :
 
@@ -25,6 +27,20 @@ visé). Une règle
 une appli qui les a gardés.
 
 Avant de cadrer une brique ou un module, relire les domaines qu'il touche.
+
+**Ajouter une ligne.** Toute PR qui corrige un défaut rencontré à l'usage ajoute ou
+met à jour une ligne ici (skill `solstice-livrer`). Au catalogue, la ligne prend le
+préfixe de sa section (celui des lignes qui s'y trouvent déjà, D, T, I, ME…) et le
+numéro qui suit le plus haut de ce préfixe ; un numéro retiré ne se réutilise pas.
+Dans une appli assemblée, elle s'écrit dans la section du domaine avec un numéro
+`X` à part, hors de la série du préfixe de section (X1, X2…) : un `D14` pris chez
+elle entrerait en collision avec le `D14` que le catalogue écrira un jour. La
+retouche du fichier venu du catalogue se note dans `ADAPTATIONS.md`, et la leçon
+remonte par ce circuit : le catalogue la reprend sous son propre numéro, l'appli
+garde sa ligne `X` telle quelle. Une ligne neuve donne la
+règle, le cas, et ce qui la tient (« **Non tenue** » tant que rien ne la tient).
+Au catalogue, les renvois `fichier:ligne` sont verrouillés par un test ; une appli
+assemblée ne l'a pas.
 
 ## 1. Données et migrations
 
@@ -265,7 +281,7 @@ Les autres règles de date sont rangées avec leur calcul : F5, F6, F7, C4, C5.
 | --- | --- | --- | --- |
 | ME1 | On s'assigne un ticket avant de le prendre. | Un ticket pris deux fois a donné deux implémentations, et la mauvaise a été fusionnée. | `solstice-livrer` (`SKILL.md:15`) |
 | ME2 | Une session de travail, un worktree. | D'autres sessions changeaient la branche du clone partagé juste avant un commit. | `solstice-livrer` (`SKILL.md:21`) |
-| ME3 | La fusion revient à un humain : fusionner, c'est mettre en ligne. | Avec l'auto-déploiement, chaque fusion partait en production. | garde `gh pr merge` (`.claude/hooks/gardes.mjs:706`) ; `solstice-livrer` (`SKILL.md:73`) |
+| ME3 | La fusion revient à un humain : fusionner, c'est mettre en ligne. | Avec l'auto-déploiement, chaque fusion partait en production. | garde `gh pr merge` (`.claude/hooks/gardes.mjs:706`) ; `solstice-livrer` (`SKILL.md:80`) |
 | ME4 | Une URL de base distante ne se colle jamais dans un terminal ni un fichier. | Collée dans un terminal, l'adresse de la base de production est restée dans l'historique, et il a fallu changer les identifiants. | garde (`.claude/hooks/gardes.mjs:67`) ; `.claude/hooks/gardes.test.mjs` |
 | ME5 | Avant une PR, relire ce que le diff rend faux dans la documentation. | La dérive de documentation a été le deuxième poste de correctifs d'un projet antérieur : renvois morts, commentaires d'un état passé, une même règle écrite à quatre endroits et contredite par l'un d'eux. | agent `relecteur-docs` (`.claude/agents/relecteur-docs.md:9`) ; `CLAUDE.md` §7 |
 | ME6 | Un test énonce la règle qu'il verrouille et cite le cas d'origine. | Sur deux projets antérieurs, ces intitulés ont servi de mémoire des incidents. | `solstice-livrer` (`SKILL.md:30`) ; `solstice-donnees` (`SKILL.md:251`) |
@@ -308,3 +324,7 @@ incluent la descendance, archivage qui cache ce qui bloque une suppression).
   sortie des journaux : ME8 à ME10, P3, P4, DP11.
 - Inventaire des applis livrées, journaux du prototype, commentaires
   « projet précédent » du code, skills, gardes et agents : le reste.
+- Depuis la publication du catalogue : chaque PR qui corrige un défaut rencontré
+  à l'usage (incident, anomalie d'une appli, d'un essai ou d'une recette,
+  constat d'audit) ajoute sa ligne, et une appli assemblée fait remonter les
+  siennes par `ADAPTATIONS.md`.

@@ -11,6 +11,12 @@ Closes #
 <!-- Le problème, la solution retenue, ce qui a été écarté. Une demande = un
      changement : rien de sans rapport. -->
 
+## Leçon au registre
+
+<!-- Une PR qui corrige un défaut rencontré à l'usage ajoute ou met à jour une
+     ligne de docs/cicatrices.md : le numéro de la ligne (au catalogue, celui de
+     sa section ; dans une appli, X1, X2…), ou « sans objet » et pourquoi. -->
+
 ## Vérifications lancées
 
 <!-- Cocher ce qui a été lancé et tel que ça a répondu (CLAUDE.md, section 6). -->
