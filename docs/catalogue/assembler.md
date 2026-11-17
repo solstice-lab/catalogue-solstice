@@ -10,7 +10,7 @@ choisies vers un dossier vide hors du catalogue, et rien de ce qui
 fait vivre le catalogue lui-même : ni le `README.md`, ni `docs/catalogue/` (dont ce fichier), `PROJET.md` (s'il existe),
 `outils/`, ni la skill `creer-appli` et l'agent
 `relecteur-blueprint`, ni les tests de l'assembleur, de l'outil des issues, de l'outil de mise à jour et de
-l'outil des adaptations, ni le test des renvois de `docs/cicatrices.md`, ni
+l'outil des adaptations, ni le test des renvois et du compteur de `docs/cicatrices.md`, ni
 le workflow `assemblage.yml`, ni `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`,
 `CODE_OF_CONDUCT.md`
 et les modèles de ticket et de PR (liste `EXCLUS_DU_CATALOGUE` de
