@@ -200,7 +200,7 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   `catalogue-solstice`, les bases locales du catalogue
   `catalogue_solstice_test`, et la prose dit « catalogue Solstice Lab »
   (NOTICE, blueprint et en-têtes écrits par l'assembleur compris).
-  l'outil des issues du catalogue (absent d'une appli) refuse toujours `--confirmer` sur le dépôt du
+  L'outil des issues du catalogue (absent d'une appli) refuse toujours `--confirmer` sur le dépôt du
   catalogue, sous l'un ou l'autre nom.
 - **Pour l'appli** : rien à changer. Une appli assemblée avant ce changement
   se met à jour comme avant : l'outil rejoue chaque commit avec son propre
