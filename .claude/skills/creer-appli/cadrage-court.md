@@ -57,6 +57,7 @@ section 9 que la ligne nomme, ou à défaut par celui qui remplit le fichier en 
 | --- | --- | --- |
 | Nom de l'appli, nom affiché | Tirés de la réponse 1 (`annuaire-fournisseurs`, « Annuaire des fournisseurs ») | |
 | Profil, briques | Déduits des trois réponses ; `deploiement` en plus (ligne Hébergement) | |
+| Leçons du registre | Celles des sections que touchent les briques choisies, inscrites en tête de la section 9 de la blueprint (`blueprint-modele.md`) ; celles du métier que les trois réponses ne disent pas : « à confirmer au ticket du module » | |
 | Entités | Clé métier : le champ qui nomme une fiche (un nom, une référence), unique. Suppression : définitive, par qui modifie, comme le patron `dossiers` | |
 | Entrée (avec `comptes`) | `entree: ferme`, rôles `membre` (consulte, rôle par défaut) et `admin` (modifie), `methodes: [code-email]`, `personnes_par_reseau` omis (défaut du profil) | la mise en ligne : domaine ou adresses admis, premier admin |
 | Écrans, thème | Ordinateur d'abord, utilisable sur téléphone ; thème de repli (charte Solstice Lab), une charte du client se pose par le ticket « thématiser » | |

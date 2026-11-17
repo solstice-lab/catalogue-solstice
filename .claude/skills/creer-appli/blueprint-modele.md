@@ -256,6 +256,22 @@ la description, puis :
    l'ouverture à de vrais membres, pas le déploiement. S'il y a lieu, un ticket de plus
    écrit le bandeau « instance de recette » tant que les mentions sont incomplètes.
 
+   **Les leçons du registre** s'écrivent en tête de la section 9, avant `### 9.1`, sous un
+   sous-titre `### Leçons du registre` que l'outil des issues ne lit pas : un tableau
+   (numéro de la leçon dans `docs/cicatrices.md`, règle en une ligne, étape 9.n qui la tient,
+   ou « sans objet » et pourquoi). Le registre reste la source : ne pas le recopier. Chaque
+   étape concernée porte aussi, dans son contenu, une ligne « Leçons du registre : C4, C5… »
+   avec la règle courte : c'est elle qui arrive dans l'issue, le tableau n'est que l'index.
+   Les deux se recoupent. Sont concernées les leçons des sections du registre que l'appli
+   touche : la base (Données et migrations, Tests et bases locales), tout module métier, ses calculs (Calcul métier), ses dates (Dates et fuseaux),
+   son interface ; `comptes`, `gestion-comptes`, `espaces` (Accès et comptes), `rgpd` et
+   `journal` (Données personnelles) ; `import-lot` (Import de fichiers, Rapprochement
+   d'identité) ; `validation` (Circuit de validation) ; `mails`, `contact`, `notifications`
+   (Envoi de mails et rappels) ; `deploiement` (Déploiement et hébergement) ; selon le
+   cadrage, Documents sortants et facturation, Fichiers joints, IA et tâches longues,
+   Sources externes et synchronisations ; toujours Méthode et gardes de Claude. Une section
+   sans leçon applicable est dite « sans objet », avec la raison.
+
    **Format lu par l'outil des issues** (`outils/creer-issues.mjs`, étape 6 de `SKILL.md`) :
    un paragraphe d'introduction libre, puis une étape par sous-titre `### 9.n Titre`, numérotée
    9.1, 9.2… sans trou, dans l'ordre où elles se font. Sous chaque titre :
@@ -277,6 +293,13 @@ la description, puis :
 
    Chaque étape est un ticket, dans cet ordre, avec la skill `solstice-livrer`.
 
+   ### Leçons du registre
+
+   | N° | Règle | Étape |
+   | --- | --- | --- |
+   | DP2 | Rien ne part en production sans la CI verte | 9.3 |
+   | DP3 | La sonde de santé répond sans session | 9.3 |
+
    ### 9.1 Socle prêt pour la prod
 
    Vérifier ce que l'assembleur a écrit de l'en-tête, régler `src/lib/format.ts`, retirer
@@ -296,6 +319,8 @@ la description, puis :
    ### 9.3 Mise en ligne
 
    Avec la brique `deploiement` : les gestes de son README (Blueprint Render, variables, secret).
+
+   Leçons du registre : DP2 (rien ne part en production sans la CI verte), DP3 (la sonde de santé répond sans session).
 
    Vérifiable à l'écran : `<adresse>/sante` renvoie le commit fusionné et la base `ok`.
    Bloqué par : 9.1

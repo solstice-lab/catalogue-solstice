@@ -229,6 +229,7 @@ sortie, de fiche et d'identité git ne se voient pas dans la blueprint.
   `Bloqué par :` (« aucune » ou des étapes précédentes). Une section 9 en liste numérotée,
   une étape sans l'un des champs ou qui dépend d'une étape suivante est un « à corriger » :
   l'outil la refuserait.
+- Leçons du registre : en tête de la section 9, avant `### 9.1`, un sous-titre `### Leçons du registre` et son tableau (numéro, règle en une ligne, étape 9.n ou « sans objet » et pourquoi). Contrôler : que la partie existe ; qu'elle n'est pas vide sans raison dite quand les briques de `briques_assemblees` ou le cadrage touchent un domaine de `docs/cicatrices.md` (calcul, facturation, import, IA, données sensibles, accès, mails, déploiement) ; que chaque numéro existe dans le registre ; que chaque leçon rattachée à une étape figure dans la ligne « Leçons du registre : … » de cette étape, et inversement ; qu'aucune leçon n'est recopiée en entier. Après un cadrage court, des leçons de métier « à confirmer au ticket du module » sont attendues, pas un constat.
 - Import (`import-lot`) gardé : un vrai fichier anonymisé du client est une question ouverte
   tant qu'on n'en a pas lu un (cas vécu sur un prototype de demande d'achat : la clé de
   rapprochement supposée n'était pas dans le fichier de la comptabilité).
