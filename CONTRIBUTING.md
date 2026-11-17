@@ -55,8 +55,10 @@ même langue ; un ticket en anglais est lu et reçoit une réponse.
 
 ## Le circuit d'un changement
 
-1. **Un ticket d'abord.** Une anomalie ou une demande, avec les modèles
-   proposés. Une demande = un changement : pas de refactor ni de correction sans
+1. **Un ticket d'abord.** Une anomalie, une demande ou le retour d'une appli
+   assemblée, avec les modèles proposés (le modèle « Retour d'une appli
+   assemblée » se remplit par le lien du brouillon que la CI de l'appli prépare
+   dans son propre dépôt). Une demande = un changement : pas de refactor ni de correction sans
    rapport groupés dans la même PR (`CLAUDE.md`, section 5). Un ticket trop gros
    pour être relu d'un coup se découpe. Documentation seule : voie courte, sans
    ticket, plusieurs corrections par PR (skill `solstice-livrer`, §7).

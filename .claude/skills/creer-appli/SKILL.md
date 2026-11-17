@@ -1,6 +1,6 @@
 ---
 name: creer-appli
-description: "Assembler une appli client depuis le catalogue Solstice Lab (un socle et des briques) : mener le cadrage, choisir les briques que l'assembleur sait donner, écrire la blueprint de l'appli et la faire relire, lancer outils/assembler.mjs vers un dossier vide, créer son dépôt distant après accord, en créer les issues de la section 9 de la blueprint et dire à l'humain quoi taper ensuite ; puis, ces tickets faits, lister les adaptations de l'appli (outils/adaptations.mjs) et en tirer les brouillons de tickets du catalogue. À charger quand la personne qui utilise le catalogue veut créer une appli client depuis ce dépôt (pas depuis une appli client déjà assemblée)."
+description: "Assembler une appli client depuis le catalogue Solstice Lab (un socle et des briques) : mener le cadrage, choisir les briques que l'assembleur sait donner, écrire la blueprint de l'appli et la faire relire, lancer outils/assembler.mjs vers un dossier vide, créer son dépôt distant après accord, en créer les issues de la section 9 de la blueprint et dire à l'humain quoi taper ensuite ; puis, ces tickets faits, trier avec la personne qui pilote les brouillons de tickets du catalogue que la CI de l'appli dépose dans ses issues, et faire noter les adaptations sans note (outils/adaptations.mjs). À charger quand la personne qui utilise le catalogue veut créer une appli client depuis ce dépôt (pas depuis une appli client déjà assemblée)."
 ---
 
 # creer-appli — du cadrage à un dossier assemblé
@@ -14,8 +14,8 @@ dit comme tel.
 Ce qu'elle produit : une **blueprint** validée et un **dossier assemblé** (le socle et les
 briques choisies), dépôt git d'un seul commit, poussé vers un dépôt distant, **privé par défaut**, créé
 après un oui explicite (étape 5), non déployé, puis les issues de la section 9 de la
-blueprint (étape 6) et, une fois ces tickets faits, les brouillons de tickets du catalogue
-tirés de ses adaptations (étape 7). Ce qu'elle ne fait jamais : écrire dans une
+blueprint (étape 6) et, une fois ces tickets faits, le tri des brouillons de tickets du
+catalogue que la CI de l'appli dépose dans ses issues (étape 7). Ce qu'elle ne fait jamais : écrire dans une
 base distante, taper un `--confirmer`, écrire un `.env*`, fusionner, déployer. Elle dit quoi
 taper (`CLAUDE.md` §3 et §8).
 
@@ -441,7 +441,8 @@ brique non choisie, `partagée patron-dossiers`, `partagée patron-donnees` et `
 patron, écrans et couche données, ni `/kit` ne sont livrés), `partagée adresse-ip` quand ni `comptes` ni `contact` ne l'est, et `brique donnees` quand aucune brique
 gardée ne lit la base. Une brique choisie qui y figure est une anomalie : arrêter. La ligne
 « Dependabot : » (absente de « Retiré : », qui ne liste que des unités) doit redire la fiche (étape 1) ;
-le premier commit la reprend. La ligne
+le premier commit la reprend. Une ligne « Avertissement : … n'est pas sur origin/main » se redit à l'humain
+avant l'étape 5 : la CI du retour au catalogue de l'appli échouera jusqu'à une mise à jour. La ligne
 « Suite : » annonce le dépôt git local (branche `main`, un commit), aucun remote et, avec
 la brique données, les commandes de la base locale. Ouvrir
 `blueprint.md` dans le dossier : `commit_reference` est un commit, les listes de l'en-tête
@@ -889,28 +890,62 @@ chacune un défaut de l'assembleur, et ne sont remontées qu'une fois vues à l'
 l'appli, la garde rappelle de noter chaque retouche dans `ADAPTATIONS.md`, que l'assembleur
 écrit vide avec son en-tête.
 
-Quand les tickets de la section 9 sont fusionnés, depuis une session ouverte dans le
-catalogue, sur une copie locale de l'appli à son `origin/main` à jour :
+**Ce qui se fait seul.** L'appli a reçu `.github/workflows/retour-catalogue.yml`. À chaque
+arrivée sur sa branche `main`, sa CI lance l'outil des adaptations du catalogue. Elle dépose
+dans les issues de l'appli, sous l'étiquette `pour-le-catalogue`, un brouillon de ticket par
+note d'`ADAPTATIONS.md` dont la nature est « défaut du catalogue ». Chaque brouillon porte :
 
-```powershell
-node outils/adaptations.mjs "<chemin absolu de l'appli>"
-```
+- les fichiers que la note couvre, la note et le diff (coupé s'il dépasse la taille d'une issue).
+  Après un report fusionné, l'origine n'est plus dans l'historique de l'appli : le brouillon dit
+  « diff non donné », et `adaptations.mjs --rejouer`, lancé depuis le catalogue, le redonne ;
+- un lien « Proposer au catalogue », qui préremplit le modèle « Retour d'une appli
+  assemblée » du dépôt du catalogue ;
+- l'avertissement que le catalogue est public.
 
-Lecture seule, sans réseau hors `--rejouer` : les fichiers du catalogue retouchés ou supprimés, chacun avec
-son diff et sa note, ou « sans note » (`--json` pour un autre outil). Un diff dit « approché »
-(un fichier qu'une mise à jour a fusionné) devient exact avec `--rejouer`, qui rejoue
-l'assemblage noté au manifeste : un worktree temporaire du catalogue, Prettier, et le réseau
-pour un `npm ci` si le Prettier de ce commit n'est pas celui du catalogue. D'après la liste :
+Un seul brouillon par note, et non un par fichier : les onze fichiers de `/kit` et du patron
+font un brouillon. Une note « propre à l'appli », ou sans nature, n'en donne pas. Un brouillon
+déjà déposé, ouvert ou fermé, ne revient pas tant que la note et les fichiers qu'elle couvre
+restent les mêmes ; une retouche reprise depuis, ou fusionnée par une mise à jour, en donne un
+nouveau, à juger de nouveau. Rien ne part vers le catalogue sans geste
+humain : le dépôt du catalogue est public, et un diff d'appli peut nommer un client ou une
+règle métier.
+
+Assemblée depuis un commit qui n'est pas sur `origin/main` du catalogue, l'appli a une CI qui
+vise un commit que GitHub n'a pas (avertissement redit à l'étape 4) : elle échoue jusqu'à une
+mise à jour vers un commit publié.
+
+**Ce qui reste à faire.** Quand les tickets de la section 9 sont fusionnés :
 
 1. **Une adaptation sans note** se note d'abord dans l'appli, avec la personne qui l'a faite :
-   c'est la note qui dit « défaut du catalogue » ou « propre à l'appli », pas l'outil.
-2. **Un brouillon de ticket du catalogue par défaut**, et non un par fichier (les onze
-   fichiers de `/kit` et du patron font un ticket), au format des tickets du catalogue : le
-   cas réel daté (l'appli, ce qu'elle a dû retoucher, le diff qui le montre), ce que
-   l'assembleur devrait donner. Un défaut déjà ouvert au catalogue (`gh issue list`) reçoit
-   un commentaire, pas un doublon.
-3. **Les brouillons vont à la personne qui pilote**, qui les relit et les crée : rien ne
-   part du catalogue sans elle, et aucune donnée ne sort de l'appli.
+   c'est la note qui dit « défaut du catalogue » ou « propre à l'appli », pas l'outil. Sans
+   note, la CI ne dépose rien. Pour les retrouver, depuis une session ouverte dans le
+   catalogue, sur une copie locale de l'appli à son `origin/main` à jour :
 
-Le même geste revient à chaque mise à jour de l'appli (note `outils/mise-a-jour.md`,
+   ```powershell
+   node outils/adaptations.mjs "<chemin absolu de l'appli>"
+   ```
+
+   Lecture seule, sans réseau hors `--rejouer` : les fichiers du catalogue retouchés ou
+   supprimés, chacun avec son diff et sa note, ou « sans note » (`--json` pour un autre
+   outil). Un diff dit « approché » (un fichier qu'une mise à jour a fusionné) devient exact
+   avec `--rejouer`. Cette option rejoue l'assemblage noté au manifeste : il lui faut un
+   worktree temporaire du catalogue, Prettier, et le réseau pour un `npm ci` si le Prettier de
+   ce commit n'est pas celui du catalogue.
+2. **Chaque brouillon `pour-le-catalogue` se juge dans l'appli**, avec la personne qui pilote :
+   - pas à envoyer : le fermer ;
+   - à envoyer : ouvrir le lien, retirer du ticket prérempli ce qui nomme le client, une
+     personne ou une règle métier propre à l'appli, coller le diff s'il n'a pas tenu dans le
+     lien, ou la note et les fichiers aussi (le brouillon le dit), puis seulement créer le
+     ticket ;
+   - un défaut déjà ouvert au catalogue (`gh issue list`) reçoit un commentaire, pas un
+     doublon.
+3. **L'envoi est un geste humain**, de la personne qui pilote, sur le dépôt du catalogue.
+   Corrigé au catalogue, le défaut n'est plus à reporter à chaque mise à jour de l'appli. La
+   PR du catalogue qui le corrige suit la règle du registre `docs/cicatrices.md` (skill
+   `solstice-livrer`, « Commit et pull request ») : la retouche de l'appli en est le cas
+   d'origine. Une leçon que l'appli a ajoutée à sa copie du registre (ligne `X…`) arrive dans
+   le brouillon comme une leçon proposée, si sa note d'`ADAPTATIONS.md` a pour nature
+   « défaut du catalogue ».
+
+Le même tri revient à chaque mise à jour de l'appli (note `outils/mise-a-jour.md`,
 « Le circuit »).

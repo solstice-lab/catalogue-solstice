@@ -242,10 +242,11 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   `.github/workflows/retour-catalogue.yml`, inscrit au manifeste. À chaque
   arrivée sur `main`, il dépose dans les issues de l'appli (étiquette
   `pour-le-catalogue`) un brouillon de ticket par note d'`ADAPTATIONS.md` de
-  nature « défaut du catalogue » : fichiers, note, diff, et un lien qui
+  nature « défaut du catalogue » : fichiers, note, diff (quand l'historique de
+  l'appli en donne l'origine), et un lien qui
   préremplit un ticket du catalogue. Rien ne part vers le catalogue sans
   qu'une personne ouvre ce lien. Un brouillon déjà déposé, ouvert ou fermé,
-  ne revient pas. L'action appelée vient du dépôt du catalogue, épinglée au
+  ne revient pas tant que la retouche ne change pas. L'action appelée vient du dépôt du catalogue, épinglée au
   commit de l'assemblage ; ses droits se bornent à lire le dépôt et à écrire
   les issues, sans aucun secret.
 - **Pour l'appli** : rien à changer. Une mise à jour depuis le catalogue ajoute

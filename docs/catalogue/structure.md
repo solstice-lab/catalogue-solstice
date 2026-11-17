@@ -129,8 +129,8 @@ les options écartées sont dans `.claude/skills/solstice-nouvelle-appli/socle.m
   découpage), `solstice-livrer` (du ticket à la mise en ligne, avec une voie courte pour la documentation) et
   `creer-appli` (le dialogue de cadrage, la blueprint, l'appel de l'assembleur, puis
   le dépôt distant privé créé après accord, puis les issues de la section 9, puis,
-  ces tickets faits, les brouillons de tickets du catalogue tirés des adaptations de
-  l'appli ; propre au catalogue, une appli assemblée ne la reçoit pas).
+  ces tickets faits, le tri des brouillons de tickets du catalogue que la CI de l'appli
+  dépose dans ses issues ; propre au catalogue, une appli assemblée ne la reçoit pas).
 - `.claude/agents/` — `relecteur-migrations` et `relecteur-docs`, lancés
   avant une PR selon ce que touche le diff ; `relecteur-blueprint`, lancé par
   la skill `creer-appli` sur la blueprint, avant l'assembleur (propre au

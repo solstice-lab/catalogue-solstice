@@ -69,8 +69,10 @@ Corriger, puis rejouer **toutes** les vérifications.
   `docs/cicatrices.md` dans la même PR : la règle, le cas (sans nom, sans numéro de ticket ni
   de PR), ce qui la tient. Sans cela la leçon reste dans un commentaire du code, où personne
   ne la cherche au cadrage suivant. Une appli assemblée l'ajoute à sa copie du registre (numéro « X »,
-  voir « Ajouter une ligne » en tête du registre) et la note dans `ADAPTATIONS.md`. Sans leçon à
-  retenir (faute de frappe, évolution), le dire dans la PR : « sans objet », et pourquoi.
+  voir « Ajouter une ligne » en tête du registre) et la note dans `ADAPTATIONS.md`, nature « défaut du catalogue » pour
+  qu'elle remonte en leçon proposée. Au catalogue, un défaut remonté
+  par une appli (ticket « Retour d'une appli assemblée ») a pour cas la retouche de l'appli, datée, sans nom de client
+  ni d'appli réelle. Sans leçon à retenir (faute de frappe, évolution), le dire dans la PR : « sans objet », et pourquoi.
 - CI lue sans boucle d'attente. Branche à mettre à jour : `git rebase origin/main`, puis
   `git push --force-with-lease`, **sur sa propre branche seulement**. Deux branches qui
   ajoutent une migration : la rejouer en local après le rebase.
