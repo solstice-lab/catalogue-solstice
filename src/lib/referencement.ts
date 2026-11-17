@@ -91,33 +91,32 @@ export function champsManquants(config: Referencement = REFERENCEMENT): string[]
   return manquants;
 }
 
+// LA décision d'ouvrir le site aux moteurs, à un seul endroit : la balise, robots.txt, le
+// plan du site et l'en-tête du proxy la lisent, et une condition ajoutée ici vaut
+// pour tous. Sans effet de bord : le proxy la prend à chaque requête.
+function indexationAutoriseeSansJournal(config: Referencement): boolean {
+  return process.env.NODE_ENV === "production" && config.sitePublic && champsManquants(config).length === 0;
+}
+
 /**
  * Vrai seulement pour un site public, en production, à son adresse publique,
  * et complet. Tout le reste (développement, recette, outil interne, valeur à
  * compléter) est fermé aux moteurs.
  */
 export function indexationAutorisee(config: Referencement = REFERENCEMENT): boolean {
-  if (process.env.NODE_ENV !== "production" || !config.sitePublic) return false;
-  // champsManquants exige aussi URL_PUBLIQUE, valide, d'un site public.
-  const manquants = champsManquants(config);
-  if (manquants.length === 0) return true;
+  if (indexationAutoriseeSansJournal(config)) return true;
   // Un site déclaré public qui reste fermé ne se voit sur aucune page : une
   // URL_PUBLIQUE en http ou oubliée chez l'hébergeur passerait inaperçue. Dit
   // une fois par démarrage, dans les journaux de l'hébergeur.
-  if (!fermetureSignalee) {
+  if (process.env.NODE_ENV === "production" && config.sitePublic && !fermetureSignalee) {
     fermetureSignalee = true;
-    console.warn(`Référencement : site public fermé aux moteurs, à compléter : ${manquants.join(" ; ")}.`);
+    console.warn(
+      `Référencement : site public fermé aux moteurs, à compléter : ${champsManquants(config).join(" ; ")}.`
+    );
   }
   return false;
 }
 let fermetureSignalee = false;
-
-// La même décision, sans le signalement : le proxy la prend à chaque requête, et
-// un journal ou un effet de bord n'a rien à y faire (le signalement reste dans
-// indexationAutorisee, que lisent les pages).
-function indexationAutoriseeSansJournal(config: Referencement): boolean {
-  return process.env.NODE_ENV === "production" && config.sitePublic && champsManquants(config).length === 0;
-}
 
 /**
  * L'en-tête X-Robots-Tag de toute réponse que voit le proxy (hors fichiers
