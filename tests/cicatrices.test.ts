@@ -27,7 +27,16 @@ import { describe, expect, it } from "vitest";
  * Plusieurs cibles d'un même fichier : `fichier` « a » ; « b ». Une skill ou
  * un agent nommé avant l'expression (`solstice-ui` (« a »)) vaut son SKILL.md ;
  * `socle.md` ou un autre fichier de la skill, nommé sans chemin, vaut celui de
- * la skill. Les anciens renvois `fichier:ligne` sont refusés.
+ * la skill. Les anciens renvois `fichier:ligne` sont refusés. Un fichier cité
+ * sans expression ne vérifie rien de plus que son existence : le test la
+ * contrôle quand même (les chemins entre accents graves de la colonne ; ni les
+ * motifs comme `middleware.*`, ni les dossiers, ni un chemin écrit dans une
+ * expression « … », qui n'est pas lu comme un renvoi).
+ *
+ * Un fragment se lit sans ouvrir le fichier : il commence au verbe ou au nom qui
+ * porte la règle et finit sur un mot plein, jamais sur « de », « le » ou « par ».
+ * Il ne contient pas d'astérisques de mise en forme (`**`), qui s'afficheraient
+ * tels quels dans le tableau rendu.
  *
  * Ce que le test ne dit pas : que la cible est LA bonne pour la règle. Cela
  * reste une relecture (agent relecteur-docs), mais une cible nommée se relit
@@ -40,7 +49,8 @@ import { describe, expect, it } from "vitest";
 const RACINE = process.cwd();
 const SKILLS = path.join(".claude", "skills");
 
-type Renvoi = { numero: string; fichier: string | null; expression: string };
+// `expression` nulle : un fichier cité sans cible (on n'en vérifie que l'existence).
+type Renvoi = { numero: string; fichier: string | null; expression: string | null };
 
 const EXTENSIONS = "tsx?|md|mjs|json|css|sql|ya?ml|js";
 
@@ -86,6 +96,9 @@ function lireRenvois(texte: string, existe: (fichier: string) => boolean = () =>
       } else if (m[3]) {
         const dansLaSkill = skill && !m[3].includes("/") ? path.join(SKILLS, skill, m[3]) : null;
         courant = dansLaSkill && (m[3] === "SKILL.md" || existe(dansLaSkill)) ? dansLaSkill : m[3];
+        // Un fichier cité sans cible ne vérifie rien d'autre que son existence : le
+        // dire, plutôt que de laisser un chemin périmé passer pour tenu.
+        renvois.push({ numero, fichier: courant, expression: null });
       } else {
         renvois.push({
           numero,
@@ -168,41 +181,45 @@ function occurrences(texte: string, fragment: string): number {
 // et ce qui manque : une cible retirée ou renommée, c'est une leçon qui n'est
 // plus tenue.
 function problemes(renvois: Renvoi[], lireFichier: (fichier: string) => string | null): string[] {
-  const erreurs: string[] = [];
-  for (const r of renvois) {
-    const ou = `${r.numero} (docs/cicatrices.md)`;
-    if (!r.fichier) {
-      erreurs.push(`${ou} : « ${r.expression} » n'est précédé d'aucun fichier`);
+  const erreurs = new Set<string>();
+  for (const { numero, fichier, expression } of renvois) {
+    const ou = `${numero} (docs/cicatrices.md)`;
+    if (!fichier) {
+      erreurs.add(`${ou} : « ${expression} » n'est précédé d'aucun fichier`);
       continue;
     }
-    const contenu = lireFichier(r.fichier);
+    const contenu = lireFichier(fichier);
     if (contenu === null) {
-      erreurs.push(`${ou} : ${r.fichier} n'existe pas ; la leçon n'est plus tenue`);
-    } else if (estUnTest(r.fichier)) {
+      erreurs.add(`${ou} : ${fichier} n'existe pas ; la leçon n'est plus tenue`);
+      continue;
+    }
+    if (expression === null) continue;
+    const r = { fichier, expression };
+    if (estUnTest(r.fichier)) {
       const n = intitules(contenu).filter((titre) => titre.includes(r.expression)).length;
       if (n === 0) {
-        erreurs.push(
+        erreurs.add(
           `${ou} : aucun intitulé de ${r.fichier} ne contient « ${r.expression} » ; le cas est renommé ou retiré, la leçon n'est plus tenue`
         );
       } else if (n > 1) {
-        erreurs.push(
+        erreurs.add(
           `${ou} : « ${r.expression} » est ambigu dans ${r.fichier} (${n} intitulés le contiennent) ; allonger le fragment`
         );
       }
     } else {
       const n = occurrences(contenu, r.expression);
       if (n === 0) {
-        erreurs.push(
+        erreurs.add(
           `${ou} : « ${r.expression} » ne figure plus dans ${r.fichier} ; la règle est changée ou retirée, la leçon n'est plus tenue`
         );
       } else if (n > 1) {
-        erreurs.push(
+        erreurs.add(
           `${ou} : « ${r.expression} » est ambigu dans ${r.fichier} (${n} occurrences) ; allonger l'expression`
         );
       }
     }
   }
-  return erreurs;
+  return [...erreurs];
 }
 
 // Compte les lignes du tableau par statut. Une ligne d'en-tête de colonne ou
@@ -373,6 +390,16 @@ describe("renvois de docs/cicatrices.md", () => {
       );
     });
 
+    it("vérifie l'existence d'un fichier cité sans cible, une fois même s'il est aussi cité avec une expression", () => {
+      expect(erreursDe("`src/exemple.ts` ; `solstice-ui` (`SKILL.md`)")).toEqual([]);
+      const absent = erreursDe("`tests/disparu.test.ts` ; `.claude/hooks/absent.mjs` ; `src/exemple.ts`");
+      expect(absent).toHaveLength(2);
+      expect(absent[0]).toMatch(/X1.*tests\/disparu\.test\.ts n'existe pas/);
+      expect(erreursDe("`tests/disparu.test.ts` « a » ; `tests/disparu.test.ts`")).toHaveLength(1);
+      // Un nom sans chemin vaut le fichier de la skill nommée avant lui : absent, il est refusé.
+      expect(erreursDe("`solstice-ui` (`inconnu.md`)")[0]).toMatch(/inconnu\.md n'existe pas/);
+    });
+
     it("refuse une expression sans fichier avant elle", () => {
       expect(erreursDe("« une règle seule »")[0]).toMatch(/aucun fichier/);
     });
@@ -390,7 +417,8 @@ describe("renvois de docs/cicatrices.md", () => {
         "| X1 | r | c | `tests/a.test.ts` « a » ; « b » ; `solstice-ui` (« c ») ; relecteur-docs (« d ») ; `solstice-nouvelle-appli` (`socle.md` « e ») |",
         (f) => f === path.join(SKILLS, "solstice-nouvelle-appli", "socle.md")
       );
-      expect(lus.map((r) => [r.fichier, r.expression])).toEqual([
+      const avecCible = lus.filter((r) => r.expression !== null);
+      expect(avecCible.map((r) => [r.fichier, r.expression])).toEqual([
         ["tests/a.test.ts", "a"],
         ["tests/a.test.ts", "b"],
         [path.join(SKILLS, "solstice-ui", "SKILL.md"), "c"],
