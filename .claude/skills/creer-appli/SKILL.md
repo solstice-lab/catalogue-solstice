@@ -937,15 +937,17 @@ mise à jour vers un commit publié.
      personne ou une règle métier propre à l'appli, coller le diff s'il n'a pas tenu dans le
      lien, ou la note et les fichiers aussi (le brouillon le dit), puis seulement créer le
      ticket ;
-   - un défaut déjà ouvert au catalogue (`gh issue list`) reçoit un commentaire, pas un
-     doublon.
+   - un défaut déjà ouvert au catalogue (`gh issue list`, en lecture) reçoit un commentaire,
+     pas un doublon. La personne qui pilote le poste, comme le ticket, après en avoir retiré
+     ce qui nomme le client : la session ne commente pas le dépôt du catalogue.
 3. **L'envoi est un geste humain**, de la personne qui pilote, sur le dépôt du catalogue.
    Corrigé au catalogue, le défaut n'est plus à reporter à chaque mise à jour de l'appli. La
    PR du catalogue qui le corrige suit la règle du registre `docs/cicatrices.md` (skill
    `solstice-livrer`, « Commit et pull request ») : la retouche de l'appli en est le cas
-   d'origine. Une leçon que l'appli a ajoutée à sa copie du registre (ligne `X…`) arrive dans
-   le brouillon comme une leçon proposée, si sa note d'`ADAPTATIONS.md` a pour nature
-   « défaut du catalogue ».
+   d'origine. Une leçon que l'appli a ajoutée à sa copie du registre (ligne `X…`) remonte si
+   sa note d'`ADAPTATIONS.md` a pour nature « défaut du catalogue ». Le brouillon porte alors
+   le diff du registre, un paragraphe « Leçon proposée », qui la distingue d'un défaut de code,
+   et le ticket prérempli la reprend sous « Leçon à inscrire au registre ».
 
 Le même tri revient à chaque mise à jour de l'appli (note `outils/mise-a-jour.md`,
 « Le circuit »).
