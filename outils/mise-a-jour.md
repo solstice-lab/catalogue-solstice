@@ -435,15 +435,33 @@ Le circuit suit `solstice-livrer` : le ticket d'abord, puis une branche depuis u
    vérifications du `CLAUDE.md` de l'appli (§6), la relecture par sous-agents
    (`relecteur-migrations` dès qu'une étape est ajoutée), le commit, la PR avec le rapport.
 
-**Les adaptations, à chaque mise à jour** (« Ce qui est outillé ») : avant l'étape 2, sur le
-même `HEAD` de l'appli, `node outils/adaptations.mjs <dossier-de-l-appli>`. Avant le report,
-l'origine de chaque fichier est encore dans l'historique de l'appli : le diff est exact. Après un
-report fusionné, celle des fichiers fusionnés n'y est plus : `--rejouer` la redonne. D'après
-la liste, la session rédige les **brouillons de tickets du catalogue**, un par défaut et non un
-par fichier (les onze fichiers de `/kit` et du patron retirés font un ticket), chacun avec le
-cas réel daté et le diff qui le montre, et les remet à la personne qui pilote, qui les crée.
-Une adaptation « propre à l'appli » n'en donne pas. Une adaptation « sans note » se note d'abord
-dans l'appli, avec la personne qui l'a faite.
+**Les adaptations, à chaque mise à jour** (« Ce qui est outillé ») :
+
+- **Ce qui se fait seul.** La CI de l'appli (`.github/workflows/retour-catalogue.yml`, écrit par
+  l'assembleur) dépose déjà les brouillons de tickets du catalogue dans les issues de l'appli, à
+  chaque arrivée sur sa branche `main`. Étiquette `pour-le-catalogue`, un brouillon par note
+  « défaut du catalogue », et non un par fichier : les onze fichiers de `/kit` et du patron
+  retirés font un brouillon. Chacun porte la note, les fichiers, le diff (« diff non donné »
+  après un report fusionné : `--rejouer` le redonne), l'avertissement que
+  le catalogue est public, et un lien qui préremplit le ticket du catalogue. Un brouillon déjà
+  déposé, ouvert ou fermé, ne revient pas tant que la note et les fichiers qu'elle couvre restent
+  les mêmes : une retouche reprise depuis, ou fusionnée par un report, en donne un nouveau.
+- **Ce que la session fait encore.** Avant l'étape 2, sur le même `HEAD` de l'appli, elle
+  lance `node outils/adaptations.mjs <dossier-de-l-appli>`, pour les adaptations « sans
+  note ». La CI ne les voit pas comme des défauts : chacune se note d'abord dans l'appli, avec
+  la personne qui l'a faite. Avant le report, l'origine de chaque fichier est encore dans
+  l'historique de l'appli, et le diff est exact. Après un report fusionné, celle des fichiers
+  fusionnés n'y est plus : `--rejouer` la redonne. Une adaptation « propre à l'appli » ne
+  donne pas de brouillon.
+- **Ce qui reste un geste humain.** La personne qui pilote juge chaque brouillon :
+  - pas à envoyer, elle le ferme ;
+  - à envoyer, elle ouvre le lien, retire du ticket prérempli ce qui nomme le client, une
+    personne ou une règle métier, colle le diff s'il n'a pas tenu dans l'adresse (ou la note
+    et les fichiers aussi, si le brouillon le dit), puis crée le ticket.
+
+  Rien ne part seul vers le catalogue. La PR du catalogue qui corrige le défaut suit la règle
+  du registre `docs/cicatrices.md` (skill `solstice-livrer`, « Commit et pull request ») : la
+  retouche de l'appli en est le cas d'origine.
 
 Restent à un humain :
 
@@ -748,7 +766,7 @@ l'appli sur `origin/main` (puce « L'ajout » ci-dessous).
 - **Les adaptations de l'appli** (le 2026-11-05) : trois retouches de tours-de-coloc à des
   fichiers venus du catalogue (`/kit` et les écrans du patron retirés, l'accueil livré vide
   rempli, l'onglet de la coloc) n'étaient remontées au catalogue qu'une fois vues à
-  l'écran. Trois pièces, et le geste du « Circuit » :
+  l'écran. Quatre pièces, et le geste du « Circuit » :
   - **le rappel** : dans une appli assemblée, la garde (`.claude/hooks/gardes.mjs`) laisse
     passer toute écriture d'un fichier au manifeste et rappelle de la noter dans
     `ADAPTATIONS.md`, tant qu'aucune entrée ne la couvre (son chemin, ou un dossier cité avec
@@ -778,7 +796,25 @@ l'appli sur `origin/main` (puce « L'ajout » ci-dessous).
     restent approchés. Sans l'option, ni rejeu ni réseau. La lecture du manifeste et la
     comparaison des empreintes sont dans `outils/manifeste.mjs`, que les deux outils
     partagent : cet outil-ci n'y ajoute que ce que le rejeu exige (les réglages du format 2,
-    pas de `+arbre-modifie`), et ses refus gardent ses mots.
+    pas de `+arbre-modifie`), et ses refus gardent ses mots ;
+  - **le retour au catalogue** (le 2026-11-17), pour que le retour ne dépende plus de
+    quelqu'un qui pense à lancer l'outil, à trier et à rédiger :
+    - le fichier : l'assembleur écrit dans l'appli `.github/workflows/retour-catalogue.yml`,
+      inscrit au manifeste. La mise à jour le renouvelle ou l'ajoute comme tout fichier venu du
+      catalogue ;
+    - le déclenchement : à chaque arrivée sur `main`, il appelle l'action composite du catalogue
+      (`.github/actions/retour-catalogue`), épinglée au commit du catalogue de l'assemblage ;
+    - ce que fait l'action : elle lance `outils/retour-catalogue.mjs`, qui lit les adaptations
+      et dépose dans les issues de l'appli un brouillon par note « défaut du catalogue »
+      (étiquette `pour-le-catalogue`, marqueur pour ne rien déposer deux fois) ;
+    - le lien : il préremplit le modèle « Retour d'une appli assemblée » du catalogue ;
+    - les droits : `contents: read` et `issues: write`, aucun secret, et rien n'est écrit hors
+      du dépôt de l'appli.
+
+    Le brouillon reste dans le dépôt de l'appli, et l'envoi au catalogue est un geste humain
+    (« Le circuit ») : le catalogue est public. Épinglé au commit de l'assemblage, et non à
+    `main`, le code qui tourne avec le droit d'écrire des issues ne change qu'avec une mise à
+    jour relue.
 
 ## Décisions prises
 

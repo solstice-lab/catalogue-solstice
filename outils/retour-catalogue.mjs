@@ -255,7 +255,7 @@ function corpsDuBrouillon({ depot, note, fichiers, marqueur, lien }) {
         ]
       : []),
     "",
-    "Pas à envoyer : fermer ce brouillon, il ne reviendra pas.",
+    "Pas à envoyer : fermer ce brouillon, il ne reviendra pas tant que la retouche ne change pas.",
     "",
     "## Note d'ADAPTATIONS.md",
     "",
@@ -403,7 +403,8 @@ export function fichierDeCI({ depot, commit, checkout, setupNode, versionDeNode 
     `# ${ETIQUETTE}) un brouillon de ticket par note d'ADAPTATIONS.md de nature`,
     `# « ${NATURE} ». Rien ne part vers le catalogue, qui est public : le`,
     "# brouillon porte un lien qu'une personne ouvre, après en avoir retiré ce qui",
-    "# nomme le client ou une règle métier. Fermer un brouillon l'écarte pour de bon.",
+    "# nomme le client ou une règle métier. Fermer un brouillon l'écarte, tant que la",
+    "# retouche ne change pas.",
     "#",
     "# L'action vient du catalogue, épinglée au commit de l'assemblage ou de la",
     "# dernière mise à jour : le code qui tourne ici avec le droit d'écrire des issues",
