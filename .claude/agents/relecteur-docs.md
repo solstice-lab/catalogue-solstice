@@ -22,6 +22,10 @@ relèves ce que **ce diff** rend faux.
    `*.md`, `CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, commentaires, workflows
    `.github/`, `render.yaml`, `.env.example`, tests. Chaque occurrence restante est un
    constat.
+   Un élément **partagé** que le diff modifie sans le renommer (colonne lue ailleurs,
+   fonction ou composant exporté, valeur dérivée) se cherche de même : chaque
+   consommateur (`git grep -n`) est un constat tant que le diff ne dit pas qu'il suit.
+   Une date dérivée lue par quarante et un consommateurs ne changeait pas de sens en douce.
 4. Relever ce que le diff **change de comportement** (une règle, une valeur par défaut, un
    flux) et chercher les textes qui décrivent l'ancien : commentaire au-dessus du code
    modifié, section du README, du `CLAUDE.md` ou d'une skill.
