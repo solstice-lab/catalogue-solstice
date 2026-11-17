@@ -148,9 +148,14 @@ hooks, les vôtres compris : Claude Code ne permet pas d'en retirer un seul.
 Le catalogue lui-même ne se paie pas ; ce sur quoi il s'appuie, pas toujours.
 Aucun prix n'est donné ici : ils changent, à lire chez chaque fournisseur.
 
-- **Un ordinateur** avec git (et une identité configurée), Node 24 ou plus et
-  npm 11.16 ou plus ; pour une appli qui garde des données, Docker, qui fait
-  tourner la base sur votre poste.
+Deux portes d'entrée : **sur votre poste**, la voie principale, ou **sans rien
+installer**, dans le navigateur, avec GitHub Codespaces (voir « Démarrage
+rapide »). Seul l'ordinateur équipé ci-dessous change entre les deux.
+
+- **Sur votre poste, un ordinateur** avec git (et une identité configurée),
+  Node 24 ou plus et npm 11.16 ou plus ; pour une appli qui garde des données,
+  Docker, qui fait tourner la base sur votre poste. Sans rien installer, un
+  navigateur suffit.
 - **Un compte GitHub**, pour héberger le dépôt de l'appli. Sur un dépôt privé,
   exiger qu'une personne relise avant la mise en ligne demande un plan GitHub
   payant (d'après sa documentation).
@@ -166,6 +171,9 @@ Aucun prix n'est donné ici : ils changent, à lire chez chaque fournisseur.
   d'expéditeur vérifiée.
 
 ## Démarrage rapide
+
+Ce qui suit se fait sur votre poste. Pour essayer sans rien installer, voir
+« Sans rien installer : GitHub Codespaces », plus bas.
 
 Les prérequis sont ceux de « Ce qu'il vous faut » ; l'assembleur commite
 l'appli, d'où l'identité git. Dans la suite, « assembler » veut dire copier le
@@ -208,6 +216,63 @@ dépôt, avec la skill `creer-appli`, lancée dans une session Claude Code ouver
 dépôt distant après accord, puis les tickets de la première étape. Le
 déroulement complet est dans [`docs/catalogue/demarrer.md`](docs/catalogue/demarrer.md).
 
+### Sans rien installer : GitHub Codespaces
+
+Une option en plus de l'installation sur votre poste : le catalogue s'ouvre dans
+le navigateur, dans un environnement prêt à l'emploi décrit par
+[`.devcontainer/`](.devcontainer/) (Node, Docker et la base Postgres, Claude
+Code et son extension, `gh`, l'outil de GitHub en ligne de commande, git déjà
+configuré). Il faut un compte GitHub et un compte Claude ; ni git, ni Node, ni
+Docker sur la machine.
+
+[![Ouvrir dans GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/solstice-lab/catalogue-solstice-vibe)
+
+Le parcours, en bref ; le parcours détaillé, le Codespace propre à chaque dépôt
+et les limites sont dans [`docs/catalogue/codespaces.md`](docs/catalogue/codespaces.md) :
+
+- **Deux autorisations au départ**, normales, à accepter : connecter votre
+  compte Claude au premier lancement de Claude Code (par son extension ou dans
+  le terminal), puis, au moment de créer le dépôt de l'appli, autoriser `gh` à
+  agir sur votre compte GitHub.
+- **Assembler depuis le catalogue**, avec la skill `creer-appli`, comme sur un
+  poste. À la fin (appli assemblée, dépôt créé, tickets ouverts), Claude dit
+  d'ouvrir une nouvelle session dans le dossier de l'appli.
+- **Passer du catalogue à l'appli**, dans le même Codespace : **File > Open
+  Folder…** (Fichier > Ouvrir le dossier), choisir `/workspaces/<nom-de-l-appli>`,
+  à côté du catalogue (Claude donne le chemin). La fenêtre se recharge sur les
+  fichiers de l'appli. Ouvrir un terminal (**Terminal > New Terminal**) ; pour
+  une appli avec base, y préparer les bases et `.env.local` avec la commande
+  `bases-locales.ts` du démarrage rapide. Lancer l'appli dans ce terminal
+  (`npm run dev`) et s'y connecter. Claude, ouvert ensuite, démarre une nouvelle
+  conversation, propre à l'appli, où celle du catalogue n'apparaît pas.
+- **Un Codespace par dépôt.** La page GitHub du dépôt de l'appli ne montre pas
+  le Codespace du catalogue : elle propose d'en créer un. Ce Codespace propre à
+  l'appli (bouton **Code**, onglet **Codespaces**) sert à reprendre le travail
+  plus tard ou ailleurs ; il reçoit le même environnement, mais sa base est
+  vide, à préparer de nouveau avec la même commande.
+- **Les commandes** se tapent dans le terminal du Codespace, un terminal Linux
+  (bash), où le catalogue est déjà cloné et installé. Si la skill demande votre
+  système, répondre : « Linux, terminal bash de GitHub Codespaces ». L'appli lancée par
+  `npm run dev` s'ouvre dans le navigateur, sur une adresse en
+  `….app.github.dev` que seul votre compte GitHub peut voir.
+
+Les limites :
+
+- un compte GitHub est obligatoire, et l'environnement dépend de GitHub ;
+- le Codespace est facturé au compte qui le crée, au-delà du quota gratuit
+  mensuel ;
+- pas de vraies données personnelles dedans : il est hébergé par GitHub, et les
+  données réelles ne vivent qu'en production, chez l'hébergeur choisi ;
+- il s'arrête après 30 minutes sans activité (réglage par défaut) : les
+  fichiers restent, les programmes lancés s'arrêtent ;
+- un Codespace inactif est supprimé au bout de 30 jours (réglage par défaut),
+  avec ce qui n'a pas été envoyé sur GitHub : demandez à Claude d'y envoyer
+  (pousser) le travail à chaque fin de séance.
+
+Côté coût, un essai complet (assembler une appli, la lancer, s'y connecter)
+tient dans le quota gratuit mensuel d'un compte GitHub personnel ; le compte
+Claude se paie à part, comme sur un poste.
+
 ## Statut du projet
 
 - **Expérimental.** Le catalogue est celui de Solstice Lab et change
@@ -226,6 +291,7 @@ déroulement complet est dans [`docs/catalogue/demarrer.md`](docs/catalogue/dema
 | Pour                                         | Lire                                                                                                                                                               |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Démarrer une appli en local, mener un projet du cadrage à la mise en ligne | [`docs/catalogue/demarrer.md`](docs/catalogue/demarrer.md)                                                                          |
+| Travailler sans rien installer, dans GitHub Codespaces : le parcours détaillé, un Codespace par dépôt, les limites | [`docs/catalogue/codespaces.md`](docs/catalogue/codespaces.md)                                                                      |
 | Tout savoir de l'assembleur : options, profils, mise à jour d'une appli, création des tickets d'une blueprint | [`docs/catalogue/assembler.md`](docs/catalogue/assembler.md)                                                       |
 | Connaître ce que chaque brique exige et où elle se branche | [`docs/catalogue/briques.md`](docs/catalogue/briques.md)                                                                              |
 | Se repérer dans le dépôt, connaître les vérifications à lancer avant une pull request | [`docs/catalogue/structure.md`](docs/catalogue/structure.md)                                                          |
