@@ -86,6 +86,10 @@ export const EXCLUS_DU_CATALOGUE = [
   // Prouve le build du socle sans base et lance le test de l'assembleur :
   // une copie n'a ni l'assembleur ni de quoi le lancer.
   ".github/workflows/assemblage.yml",
+  // L'action du retour au catalogue : l'appli l'appelle depuis le dépôt du
+  // catalogue, épinglée par commit (son fichier de CI, que l'assembleur écrit) ;
+  // copiée, elle viserait outils/, que l'appli n'a pas.
+  ".github/actions/",
   // La licence et les fichiers de communauté du dépôt public : le client
   // reçoit une livraison sous son contrat, pas la MIT du catalogue (le texte
   // de celle-ci part dans le NOTICE que l'assembleur écrit, comme son avis

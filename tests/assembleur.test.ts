@@ -191,6 +191,8 @@ const SOCLE = [
   ".claude/skills/solstice-ui/SKILL.md",
   ".claude/hooks/gardes.mjs",
   ".github/workflows/ci.yml",
+  // Écrit par l'assembleur : le retour des adaptations au catalogue.
+  ".github/workflows/retour-catalogue.yml",
   // ci.yml vérifie la mise en forme : sans ses réglages, Prettier prendrait
   // ses défauts et refuserait tout le code de l'appli.
   "prettier.config.mjs",
@@ -275,6 +277,7 @@ const CATALOGUE = [
   ".github/ISSUE_TEMPLATE/retour-d-appli.md",
   ".github/pull_request_template.md",
   "outils/retour-catalogue.mjs",
+  ".github/actions/retour-catalogue/action.yml",
   "tests/retour-catalogue.test.ts",
 ];
 
@@ -1037,9 +1040,17 @@ describe("assemblage de tout le catalogue", () => {
       }
       comptes++;
     }
+    // Les seuls fichiers que le catalogue n'a pas : ceux que l'assembleur écrit.
     // La blueprint, l'avis NOTICE, le registre des adaptations et le manifeste
-    // d'empreintes sont les seuls fichiers que le catalogue n'a pas.
-    expect(copies.size).toBe(comptes + 4);
+    // d'empreintes, et le fichier de CI du retour au catalogue : écrit et non
+    // copié, parce qu'il porte le commit du catalogue de l'assemblage (il entre
+    // pourtant au manifeste, pour que la mise à jour le renouvelle).
+    const ecrits = ["blueprint.md", "NOTICE", "ADAPTATIONS.md", MANIFESTE, ".github/workflows/retour-catalogue.yml"];
+    for (const chemin of ecrits) {
+      expect(copies.has(chemin), `${chemin} manque`).toBe(true);
+      expect(fs.existsSync(path.join(SOURCE, chemin)), `${chemin} ne vient pas du catalogue`).toBe(false);
+    }
+    expect(copies.size).toBe(comptes + ecrits.length);
   });
 
   // Le catalogue est publié sous MIT ; le code d'une appli client ne l'est

@@ -11,7 +11,7 @@ fait vivre le catalogue lui-même : ni le `README.md`, ni `docs/catalogue/` (don
 `outils/`, ni la skill `creer-appli` et l'agent
 `relecteur-blueprint`, ni les tests de l'assembleur, de l'outil des issues, de l'outil de mise à jour et de
 l'outil des adaptations et de ses brouillons de retour au catalogue, ni le test des renvois et du compteur de `docs/cicatrices.md`, ni
-le workflow `assemblage.yml`, ni `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`,
+le workflow `assemblage.yml`, ni l'action du retour au catalogue (`.github/actions/`), ni `LICENSE`, `CONTRIBUTING.md`, `SECURITY.md`,
 `CODE_OF_CONDUCT.md`
 et les modèles de ticket et de PR (liste `EXCLUS_DU_CATALOGUE` de
 `outils/modules.mjs`).
@@ -25,6 +25,13 @@ son `PROJET.md`) ;
 il écrit aussi `NOTICE`, l'avis de licence (voir « Licence » du [README](../../README.md)), et `ADAPTATIONS.md`, vide
 avec son en-tête, où l'appli note chaque retouche d'un fichier venu du catalogue, et remet en forme
 par Prettier les fichiers qu'il a retouchés (il faut donc `npm ci` dans le catalogue) ;
+il écrit encore `.github/workflows/retour-catalogue.yml`, la CI qui dépose dans les issues de l'appli
+les brouillons de retour au catalogue : elle appelle l'action du catalogue épinglée au commit de
+l'assemblage, lit le dépôt du catalogue dans le champ `repository` de son `package.json`, et entre
+au manifeste comme un fichier venu du catalogue (une mise à jour la renouvelle). Assemblée depuis un
+commit absent d'`origin/main` (branche de travail, commit local), l'appli reçoit une CI qui vise un
+commit que GitHub n'a pas : l'assembleur le dit en avertissement, sans refuser, et cette CI échoue
+jusqu'à une mise à jour vers un commit publié ;
 il écrit aussi `catalogue.empreintes.json`, le manifeste d'empreintes : le commit du
 catalogue, court et complet, et le champ `version` de son `package.json` (fixe tant qu'aucune version n'est
 publiée), les réglages de l'assemblage (briques choisies, celles du profil comprises, et

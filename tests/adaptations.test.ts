@@ -1,12 +1,14 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { adaptations, ErreurAdaptations, rapport } from "../outils/adaptations.mjs";
 import { assembler } from "../outils/assembler.mjs";
 import { lireDesObjets } from "../outils/manifeste.mjs";
 import { mettreAJour } from "../outils/mettre-a-jour.mjs";
-import { brouillons } from "../outils/retour-catalogue.mjs";
+import { ACTION, brouillons, depotDuCatalogue, ETIQUETTE, FICHIER_DE_CI } from "../outils/retour-catalogue.mjs";
 import {
   assemblerEnTemporaire,
   dossierTemporaireVide,
@@ -51,7 +53,9 @@ const commiter = (dossier: string, message: string) => {
  * node_modules est emprunté par un lien (même Prettier : pas de npm ci), que
  * nettoyerLesAssemblages retire avant le dossier.
  */
-function copieDuCatalogue() {
+// Les fichiers du catalogue de travail, non commités compris, sans .git ni
+// node_modules : ce que GitHub télécharge pour l'action du retour au catalogue.
+function copieNueDuCatalogue() {
   const dossier = dossierTemporaireVide();
   const fichiers = gitDans(SOURCE, "ls-files", "-z", "--cached", "--others", "--exclude-standard")
     .split("\0")
@@ -60,6 +64,11 @@ function copieDuCatalogue() {
     fs.mkdirSync(path.dirname(path.join(dossier, chemin)), { recursive: true });
     fs.copyFileSync(path.join(SOURCE, chemin), path.join(dossier, chemin));
   }
+  return dossier;
+}
+
+function copieDuCatalogue() {
+  const dossier = copieNueDuCatalogue();
   gitDans(dossier, "init", "-q", "-b", "main");
   commiter(dossier, "Catalogue d'essai : commit A");
   fs.symlinkSync(path.join(SOURCE, "node_modules"), path.join(dossier, "node_modules"), "junction");
@@ -142,6 +151,131 @@ describe("outils/adaptations.mjs", { timeout: ENTIER }, () => {
     expect(rendus.map(({ fichiers }) => fichiers)).toEqual([["docs/cicatrices.md", "src/app/page.tsx"]]);
     expect(rendus[0].corps).toContain("+// L'accueil de l'appli.");
     expect(brouillons(json, { depot: "exemple/catalogue", existants: [rendus[0].corps] })).toEqual([]);
+  });
+
+  // Le déclencheur du retour, livré à l'appli : sa CI lance l'outil à chaque arrivée sur main.
+  it("livre à l'appli le fichier de CI du retour au catalogue, au manifeste, l'action épinglée au commit de l'assemblage", () => {
+    const manifeste = JSON.parse(fs.readFileSync(path.join(assemble, MANIFESTE), "utf-8"));
+    expect(manifeste.fichiers[FICHIER_DE_CI]).toMatchObject({ unite: "socle" });
+    const paquet = JSON.parse(fs.readFileSync(path.join(SOURCE, "package.json"), "utf-8"));
+    const depot = depotDuCatalogue(paquet);
+    const fichier = fs.readFileSync(path.join(assemble, FICHIER_DE_CI), "utf-8");
+    expect(fichier).toContain(`      - uses: ${depot}/${ACTION}@${manifeste.catalogue.commitComplet}\n`);
+    expect(fichier).toContain(`          catalogue: ${depot}\n`);
+    // La même action checkout que ci.yml : une montée de version ne se fait qu'à un endroit.
+    const checkout = /- uses: (actions\/checkout@\S+)/.exec(
+      fs.readFileSync(path.join(SOURCE, ".github", "workflows", "ci.yml"), "utf-8")
+    )?.[1];
+    expect(fichier).toContain(`- uses: ${checkout}`);
+    // L'empreinte notée est celle du fichier livré, mis en forme : intact, il se remplace à la mise à jour.
+    expect(manifeste.fichiers[FICHIER_DE_CI].sha256).toBe(
+      createHash("sha256")
+        .update(gitDans(assemble, "show", `HEAD:${FICHIER_DE_CI}`) + "\n")
+        .digest("hex")
+    );
+    // Ni l'action ni l'outil ne partent avec l'appli : elle les appelle au catalogue.
+    expect(fs.existsSync(path.join(assemble, ACTION))).toBe(false);
+    // Intact, il n'est pas une adaptation.
+    expect(adaptations({ catalogue: SOURCE, appli: copieDeLAppli(assemble) }).adaptations).toEqual([]);
+  });
+
+  // Presque tous les essais s'assemblent depuis une branche de travail : l'appli
+  // recevait un workflow qui appelle l'action à un commit que GitHub n'a pas, et
+  // qui échouait à chaque arrivée sur main sans qu'on sache pourquoi.
+  it("avertit, sans refuser, qu'un commit du catalogue absent d'origin/main fera échouer la CI du retour", () => {
+    const catalogue = copieDuCatalogue();
+    const commit = gitDans(catalogue, "rev-parse", "--short", "HEAD");
+    const sansOrigine = assembler({
+      source: catalogue,
+      sortie: path.join(dossierTemporaireVide(), "non-publie"),
+      commit,
+      briques: [],
+    });
+    expect(sansOrigine.avertissements).toHaveLength(1);
+    expect(sansOrigine.avertissements[0]).toMatch(/n'est pas sur origin\/main/);
+    expect(sansOrigine.avertissements[0]).toContain(FICHIER_DE_CI);
+
+    gitDans(catalogue, "update-ref", "refs/remotes/origin/main", "HEAD");
+    const publie = assembler({
+      source: catalogue,
+      sortie: path.join(dossierTemporaireVide(), "publie"),
+      commit,
+      briques: [],
+    });
+    expect(publie.avertissements).toEqual([]);
+  });
+
+  // Le seul test qui ressemble au vrai passage : dans le runner, l'action n'a que
+  // le catalogue téléchargé nu, sans node_modules. Un paquet npm importé par la
+  // chaîne de l'outil ne casserait rien ici et toutes les applis là-bas.
+  it("dépose un brouillon depuis un catalogue sans node_modules, comme l'action le lance, contre une API locale", async () => {
+    const nu = copieNueDuCatalogue();
+    expect(fs.existsSync(path.join(nu, "node_modules"))).toBe(false);
+    expect(fs.existsSync(path.join(path.dirname(nu), "node_modules"))).toBe(false);
+    const appli = copieDeLAppli(assemble);
+    ecrire(appli, "src/app/page.tsx", (texte) => `${texte}// L'accueil de l'appli.\n`);
+    ecrire(appli, "ADAPTATIONS.md", (texte) => texte + NOTE);
+    commiter(appli, "Appli : un défaut du catalogue");
+
+    const recues: { methode: string; url: string; corps: Record<string, unknown> | null }[] = [];
+    const serveur = http.createServer((requete, reponse) => {
+      let brut = "";
+      requete.on("data", (morceau) => (brut += morceau));
+      requete.on("end", () => {
+        recues.push({ methode: requete.method ?? "", url: requete.url ?? "", corps: brut ? JSON.parse(brut) : null });
+        const statut = requete.method === "GET" ? 200 : 201;
+        reponse.writeHead(statut, { "content-type": "application/json" });
+        reponse.end(requete.method === "GET" ? "[]" : "{}");
+      });
+    });
+    await new Promise<void>((resolu) => serveur.listen(0, "127.0.0.1", resolu));
+    const { port } = serveur.address() as { port: number };
+    try {
+      // Le chemin exact de action.yml : depuis le dossier de l'action, téléchargé avec tout le dépôt.
+      const outil = path.join(
+        nu,
+        ".github",
+        "actions",
+        "retour-catalogue",
+        "..",
+        "..",
+        "..",
+        "outils",
+        "retour-catalogue.mjs"
+      );
+      const sortie = await new Promise<{ code: number | null; stdout: string; stderr: string }>((resolu) => {
+        const enfant = spawn(process.execPath, [outil, appli, "--depot", "exemple/catalogue"], {
+          cwd: appli,
+          env: {
+            ...process.env,
+            NODE_PATH: "",
+            GITHUB_TOKEN: "jeton-de-test",
+            GITHUB_REPOSITORY: "exemple/appli",
+            GITHUB_API_URL: `http://127.0.0.1:${port}`,
+          },
+        });
+        let stdout = "";
+        let stderr = "";
+        enfant.stdout.on("data", (morceau) => (stdout += morceau));
+        enfant.stderr.on("data", (morceau) => (stderr += morceau));
+        enfant.on("close", (code) => resolu({ code, stdout, stderr }));
+      });
+      expect(sortie.stderr).toBe("");
+      expect(sortie.code).toBe(0);
+      expect(sortie.stdout).toMatch(/Brouillons déposés/);
+      expect(recues.map(({ methode, url }) => `${methode} ${url.replace(/\?.*/, "")}`)).toEqual([
+        "GET /repos/exemple/appli/issues",
+        "POST /repos/exemple/appli/labels",
+        "POST /repos/exemple/appli/issues",
+      ]);
+      const issue = recues[2].corps ?? {};
+      expect(issue.labels).toEqual([ETIQUETTE]);
+      expect(String(issue.body)).toContain("+// L'accueil de l'appli.");
+      expect(String(issue.body)).toMatch(/<!-- retour-catalogue:[0-9a-f]{16} -->/);
+      expect(String(issue.body)).toContain("https://github.com/exemple/catalogue/issues/new?");
+    } finally {
+      await new Promise((resolu) => serveur.close(resolu));
+    }
   });
 
   it("donne avec --json ce que rend la fonction, pour les outils suivants", () => {
@@ -232,6 +366,10 @@ describe("outils/adaptations.mjs", { timeout: ENTIER }, () => {
       const vers = gitDans(catalogue, "rev-parse", "--short", "HEAD");
       const reporte = mettreAJour({ catalogue, appli, vers, branche: "feature/reporter-catalogue" });
       expect(reporte.fichiers.fusionnes).toEqual([NAVIGATION]);
+      // Le fichier de CI du retour, intact, suit le catalogue : l'action s'épingle au commit visé.
+      expect(reporte.fichiers.remplaces).toContain(FICHIER_DE_CI);
+      const commitVise = gitDans(catalogue, "rev-parse", "HEAD");
+      expect(fs.readFileSync(path.join(appli, FICHIER_DE_CI), "utf-8")).toContain(`/${ACTION}@${commitVise}\n`);
       commiter(appli, "Catalogue : report");
 
       // Sans le rejeu : depuis le fichier du catalogue, que l'assembleur retouche (briques absentes).

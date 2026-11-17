@@ -24,7 +24,7 @@
  * base (« donnees »), qui ne se choisissent pas mais suivent ce qui les exige,
  * et les briques comptes et contact, que suit l'adresse IP.
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -47,6 +47,7 @@ import {
   retraitsDuNom,
 } from "./modules.mjs";
 import { urlDeBaseDistante } from "../.claude/hooks/gardes.mjs";
+import { depotDuCatalogue, ErreurRetour, FICHIER_DE_CI, fichierDeCI } from "./retour-catalogue.mjs";
 
 export class ErreurAssemblage extends Error {
   constructor(message) {
@@ -1078,6 +1079,63 @@ function versionDuCatalogue(racine) {
   return JSON.parse(fs.readFileSync(path.join(racine, "package.json"), "utf-8")).version;
 }
 
+/*
+ * Le fichier de CI du retour au catalogue (outils/retour-catalogue.mjs,
+ * fichierDeCI) : écrit, et non copié, parce qu'il porte le commit du catalogue
+ * de l'assemblage. Il entre au manifeste comme un fichier venu du catalogue :
+ * la mise à jour rejoue l'assemblage au commit visé, le remplace s'il est
+ * intact (nouveau commit épinglé), l'ajoute à une appli assemblée avant lui,
+ * le fusionne s'il est retouché. Le dépôt vient du package.json du catalogue,
+ * les actions checkout et setup-node et la version de Node de son ci.yml :
+ * chacun n'est écrit qu'à un endroit.
+ */
+/*
+ * Le fichier de CI du retour appelle l'action du catalogue à ce commit :
+ * GitHub ne la trouve que si le commit est publié. Presque tous les essais
+ * s'assemblent depuis une branche de travail ou un commit local ; l'appli
+ * recevait alors un workflow qui échouait à chaque arrivée sur main, sans
+ * qu'on puisse deviner pourquoi. Un avertissement, pas un refus : assembler
+ * depuis une branche reste permis. Sans origin/main (copie sans remote), le
+ * commit ne se vérifie pas : l'avertissement le dit aussi.
+ */
+function avertissementsDuCommit(racine, commitComplet) {
+  const publie = spawnSync(
+    "git",
+    ["-C", racine, "merge-base", "--is-ancestor", commitComplet, "refs/remotes/origin/main"],
+    {
+      stdio: "ignore",
+      env: environnementDeGit(),
+    }
+  );
+  if (publie.status === 0) return [];
+  return [
+    `Le commit ${commitComplet.slice(0, 7)} du catalogue n'est pas sur origin/main ` +
+      `(${publie.status === 1 ? "commit local ou branche de travail" : "origin/main introuvable ou commit inconnu"}) : ` +
+      `la CI du retour au catalogue de l'appli (${FICHIER_DE_CI}) appelle l'action du catalogue à ce commit, ` +
+      "que GitHub ne trouvera pas. Elle échouera à chaque arrivée sur main tant qu'une mise à jour depuis le " +
+      "catalogue ne l'aura pas épinglée à un commit publié.",
+  ];
+}
+
+function contenuDuRetourAuCatalogue(racine, commitComplet) {
+  const ci = fs.readFileSync(path.join(racine, ".github", "workflows", "ci.yml"), "utf-8");
+  const checkout = /^\s*- uses: (actions\/checkout@[0-9a-f]{40}[^\r\n]*)$/m.exec(ci)?.[1];
+  const setupNode = /^\s*- uses: (actions\/setup-node@[0-9a-f]{40}[^\r\n]*)$/m.exec(ci)?.[1];
+  const versionDeNode = /^\s*node-version: "?(\d+)"?\s*$/m.exec(ci)?.[1];
+  try {
+    return fichierDeCI({
+      depot: depotDuCatalogue(JSON.parse(fs.readFileSync(path.join(racine, "package.json"), "utf-8"))),
+      commit: commitComplet,
+      checkout,
+      setupNode,
+      versionDeNode,
+    });
+  } catch (erreur) {
+    if (erreur instanceof ErreurRetour) throw new ErreurAssemblage(erreur.message);
+    throw erreur;
+  }
+}
+
 // Le contenu de chaque fichier de l'index, en un seul appel à git.
 function contenusDeLIndex(destination) {
   const entrees = git(destination, "ls-files", "-s", "-z")
@@ -1198,7 +1256,7 @@ function blueprintParDefaut({ nom, commit, briques }) {
  */
 /**
  * @param {{ source: string, sortie: string, briques: string[], commit: string, nom?: string, blueprint?: string, fiche?: string, dependabot?: boolean, patronDonnees?: boolean }} options
- * @returns {{ fichiers: string[], retires: string[], ajoutees: string[], commitInitial: string, profil?: string, briques: string[] }}
+ * @returns {{ fichiers: string[], retires: string[], ajoutees: string[], commitInitial: string, profil?: string, briques: string[], avertissements: string[] }}
  *   `ajoutees` : les briques gardées sans être choisies, « rgpd (avec comptes) » ;
  *   `briques` : les choisies, celles du profil d'abord, telles que notées au manifeste.
  */
@@ -1274,6 +1332,7 @@ export function assembler({
   const contenuAvis = avisDeLicence(racine);
   const version = versionDuCatalogue(racine);
   const commitComplet = git(racine, "rev-parse", "HEAD").trim();
+  const contenuRetour = contenuDuRetourAuCatalogue(racine, commitComplet);
   // Le nom que la personne a donné (--nom ou appli de la blueprint) : le nom du
   // dossier de sortie n'en est pas un, il ne nomme pas un service chez l'hébergeur.
   const nomDonne = nom ?? (blueprint && appliDeLaBlueprint(contenuBlueprint)) ?? undefined;
@@ -1361,15 +1420,20 @@ export function assembler({
     }
     ecrits.push(chemin);
   }
+  fs.mkdirSync(path.dirname(path.join(destination, FICHIER_DE_CI)), { recursive: true });
+  fs.writeFileSync(path.join(destination, FICHIER_DE_CI), contenuRetour);
+  ecrits.push(FICHIER_DE_CI);
 
   mettreEnForme(
     prettier,
     destination,
-    ecrits.filter((chemin) => textes.has(chemin))
+    ecrits.filter((chemin) => textes.has(chemin) || chemin === FICHIER_DE_CI)
   );
 
-  // Les fichiers venus du catalogue, après la mise en forme : ni ceux que
-  // l'assembleur écrit lui-même, ni le manifeste.
+  // Les fichiers venus du catalogue, après la mise en forme : ni blueprint.md,
+  // NOTICE, ADAPTATIONS.md, PROJET.md (écrits ensuite, à l'appli), ni le
+  // manifeste. Le fichier de CI du retour, écrit plus haut, en est : il suit le
+  // catalogue à chaque mise à jour.
   const venusDuCatalogue = [...ecrits];
   const gardees = unites.filter((unite) => unite.gardee);
   const uniteDe = (chemin) => gardees.find((unite) => correspond(chemin, unite.definition.fichiers))?.nom ?? "socle";
@@ -1419,7 +1483,15 @@ export function assembler({
     formater: (fichiers) => mettreEnForme(prettier, destination, fichiers),
   });
 
-  return { fichiers: ecrits, retires: retirees, ajoutees, commitInitial, profil, briques: choisies };
+  return {
+    fichiers: ecrits,
+    retires: retirees,
+    ajoutees,
+    commitInitial,
+    profil,
+    briques: choisies,
+    avertissements: avertissementsDuCommit(racine, commitComplet),
+  };
 }
 
 // ---------------------------------------------------------------- ligne de commande
@@ -1539,6 +1611,7 @@ function main(argv) {
       ? "Dependabot : gardé (.github/dependabot.yml)."
       : "Dependabot : retiré (--dependabot le garde, quand quelqu'un entretient l'appli après la livraison)."
   );
+  for (const avertissement of resultat.avertissements) console.log(`Avertissement : ${avertissement}`);
   // Les commandes de la base sont citées ici : à un essai, la suite disait
   // « une base locale jetable » sans dire comment l'obtenir. Sans la brique données, l'appli n'a pas de base à créer.
   const avecBase = !resultat.retires.includes(`brique ${BASE}`);
