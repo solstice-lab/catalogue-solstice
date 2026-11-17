@@ -315,12 +315,12 @@ numérotées, au format qu'il décrit. Écrire le fichier **hors du catalogue**,
 à côté du dossier de sortie : `<parent>/<nom>-blueprint.md`. Le présenter, corriger, faire
 valider. Le commit de référence n'est pas à deviner : l'assembleur l'écrit.
 
-**Les leçons du registre.** Avant de rédiger la section 9, relire dans `docs/cicatrices.md`
-les sections des domaines que l'appli touche : celles de ses briques et de ce que le cadrage
-dit du métier (la correspondance est dans `blueprint-modele.md`). Chaque leçon applicable
-s'inscrit en tête de la section 9 (numéro, règle en une ligne, étape qui la tient) et dans la
-ligne « Leçons du registre » de cette étape, pour qu'elle arrive dans l'issue. Après le
-cadrage court, rien à demander de plus : la partie se remplit depuis les briques choisies.
+**Les leçons du registre.** Avant de rédiger la section 9, relire dans `docs/cicatrices.md` les
+sections que touchent les briques et le métier (correspondance dans `blueprint-modele.md`), et
+n'y retenir que ce que le catalogue ne tient pas à la place de l'appli : les leçons « Non
+tenue » ou « En partie » quand l'appli fait ce dont elles parlent, celles qu'une règle écrite
+seule tient quand l'appli écrit du code dans ce domaine ; pas celles qu'un test reçu avec une
+brique verrouille. Tableau en tête de la section 9, ligne par étape ; rien de plus au cadrage court.
 
 **Faire relire avant d'assembler.** La blueprint validée par l'humain, et avant l'appel de
 l'étape 4, passe par le sous-agent `relecteur-blueprint` (lecture seule), sans lui souffler de
