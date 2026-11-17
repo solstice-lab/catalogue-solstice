@@ -24,7 +24,7 @@
  * base (« donnees »), qui ne se choisissent pas mais suivent ce qui les exige,
  * et les briques comptes et contact, que suit l'adresse IP.
  */
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -1089,6 +1089,34 @@ function versionDuCatalogue(racine) {
  * les actions checkout et setup-node et la version de Node de son ci.yml :
  * chacun n'est écrit qu'à un endroit.
  */
+/*
+ * Le fichier de CI du retour appelle l'action du catalogue à ce commit :
+ * GitHub ne la trouve que si le commit est publié. Presque tous les essais
+ * s'assemblent depuis une branche de travail ou un commit local ; l'appli
+ * recevait alors un workflow qui échouait à chaque arrivée sur main, sans
+ * qu'on puisse deviner pourquoi. Un avertissement, pas un refus : assembler
+ * depuis une branche reste permis. Sans origin/main (copie sans remote), le
+ * commit ne se vérifie pas : l'avertissement le dit aussi.
+ */
+function avertissementsDuCommit(racine, commitComplet) {
+  const publie = spawnSync(
+    "git",
+    ["-C", racine, "merge-base", "--is-ancestor", commitComplet, "refs/remotes/origin/main"],
+    {
+      stdio: "ignore",
+      env: environnementDeGit(),
+    }
+  );
+  if (publie.status === 0) return [];
+  return [
+    `Le commit ${commitComplet.slice(0, 7)} du catalogue n'est pas sur origin/main ` +
+      `(${publie.status === 1 ? "commit local ou branche de travail" : "origin/main introuvable ou commit inconnu"}) : ` +
+      `la CI du retour au catalogue de l'appli (${FICHIER_DE_CI}) appelle l'action du catalogue à ce commit, ` +
+      "que GitHub ne trouvera pas. Elle échouera à chaque arrivée sur main tant qu'une mise à jour depuis le " +
+      "catalogue ne l'aura pas épinglée à un commit publié.",
+  ];
+}
+
 function contenuDuRetourAuCatalogue(racine, commitComplet) {
   const ci = fs.readFileSync(path.join(racine, ".github", "workflows", "ci.yml"), "utf-8");
   const checkout = /^\s*- uses: (actions\/checkout@[0-9a-f]{40}[^\r\n]*)$/m.exec(ci)?.[1];
@@ -1228,7 +1256,7 @@ function blueprintParDefaut({ nom, commit, briques }) {
  */
 /**
  * @param {{ source: string, sortie: string, briques: string[], commit: string, nom?: string, blueprint?: string, fiche?: string, dependabot?: boolean, patronDonnees?: boolean }} options
- * @returns {{ fichiers: string[], retires: string[], ajoutees: string[], commitInitial: string, profil?: string, briques: string[] }}
+ * @returns {{ fichiers: string[], retires: string[], ajoutees: string[], commitInitial: string, profil?: string, briques: string[], avertissements: string[] }}
  *   `ajoutees` : les briques gardées sans être choisies, « rgpd (avec comptes) » ;
  *   `briques` : les choisies, celles du profil d'abord, telles que notées au manifeste.
  */
@@ -1455,7 +1483,15 @@ export function assembler({
     formater: (fichiers) => mettreEnForme(prettier, destination, fichiers),
   });
 
-  return { fichiers: ecrits, retires: retirees, ajoutees, commitInitial, profil, briques: choisies };
+  return {
+    fichiers: ecrits,
+    retires: retirees,
+    ajoutees,
+    commitInitial,
+    profil,
+    briques: choisies,
+    avertissements: avertissementsDuCommit(racine, commitComplet),
+  };
 }
 
 // ---------------------------------------------------------------- ligne de commande
@@ -1575,6 +1611,7 @@ function main(argv) {
       ? "Dependabot : gardé (.github/dependabot.yml)."
       : "Dependabot : retiré (--dependabot le garde, quand quelqu'un entretient l'appli après la livraison)."
   );
+  for (const avertissement of resultat.avertissements) console.log(`Avertissement : ${avertissement}`);
   // Les commandes de la base sont citées ici : à un essai, la suite disait
   // « une base locale jetable » sans dire comment l'obtenir. Sans la brique données, l'appli n'a pas de base à créer.
   const avecBase = !resultat.retires.includes(`brique ${BASE}`);

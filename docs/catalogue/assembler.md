@@ -28,7 +28,10 @@ par Prettier les fichiers qu'il a retouchés (il faut donc `npm ci` dans le cata
 il écrit encore `.github/workflows/retour-catalogue.yml`, la CI qui dépose dans les issues de l'appli
 les brouillons de retour au catalogue : elle appelle l'action du catalogue épinglée au commit de
 l'assemblage, lit le dépôt du catalogue dans le champ `repository` de son `package.json`, et entre
-au manifeste comme un fichier venu du catalogue (une mise à jour la renouvelle) ;
+au manifeste comme un fichier venu du catalogue (une mise à jour la renouvelle). Assemblée depuis un
+commit absent d'`origin/main` (branche de travail, commit local), l'appli reçoit une CI qui vise un
+commit que GitHub n'a pas : l'assembleur le dit en avertissement, sans refuser, et cette CI échoue
+jusqu'à une mise à jour vers un commit publié ;
 il écrit aussi `catalogue.empreintes.json`, le manifeste d'empreintes : le commit du
 catalogue, court et complet, et le champ `version` de son `package.json` (fixe tant qu'aucune version n'est
 publiée), les réglages de l'assemblage (briques choisies, celles du profil comprises, et
