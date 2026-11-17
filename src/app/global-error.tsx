@@ -17,8 +17,9 @@ export default function ErreurGlobale({ error, reset }: { error: Error & { diges
               Une erreur est survenue
             </h3>
             <p>
-              L&apos;application n&apos;a pas pu s&apos;afficher. Réessayer suffit souvent ; si l&apos;erreur persiste,
-              prévenir l&apos;équipe technique.
+              L&apos;application n&apos;a pas pu s&apos;afficher. Si vous veniez d&apos;enregistrer, vérifier que
+              l&apos;enregistrement a eu lieu avant de recommencer ; si l&apos;erreur persiste, prévenir l&apos;équipe
+              technique.
             </p>
             {error.digest && (
               <p className="sl-erreur-reference">

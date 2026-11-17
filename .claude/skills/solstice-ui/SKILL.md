@@ -103,11 +103,27 @@ Deux couches, à ne jamais mélanger :
   Sans elles, une erreur en prod est une page blanche avec un digest
   cryptique. Le digest reste affiché : c'est la référence à chercher dans les
   logs. Les messages ne nomment jamais une personne — dire « l'équipe
-  technique ».
+  technique ». Une erreur de rendu n'annule pas l'écriture : elle a souvent
+  eu lieu avant l'erreur, et la page le dit (vérifier avant de recommencer),
+  sinon la personne enregistre deux fois.
 - **La limite de taille annoncée est celle qui s'applique** : un champ fichier
   annonçait 10 Mo alors que le plafond réel était de 3 Mo, et refusait sans
   explication. Le texte à l'écran et le contrôle lisent la même valeur, plafond
   du framework ou de l'hébergeur compris ; un refus dit la limite.
+- **Un fichier s'envoie par un Route Handler, pas par une action serveur** : un
+  fichier joint envoyé par une action serveur échouait sur « Unexpected end of
+  form ». Le formulaire poste vers une route qui lit le `FormData` ; la brique
+  `import-lot` (`envoi.ts`) en donne le modèle.
+- **Le nom d'un fichier téléchargé supporte tout caractère** : une apostrophe
+  typographique dans le nom faisait répondre une erreur 500. L'en-tête
+  `Content-Disposition` porte un nom de repli sûr (`filename=`) et le vrai nom
+  encodé (`filename*=UTF-8''…`, par `encodeURIComponent`) ; un nom fixe, comme
+  celui de l'export de la brique `rgpd`, n'a pas ce risque.
+- **Un formulaire en deux temps n'a qu'un état, celui de la dernière
+  réponse** : adresse puis code, renvoi compris, par une seule action aiguillée
+  par le bouton qui soumet. Deux états séparés laissaient l'erreur d'un ancien
+  code à côté du nouveau (`FormulaireCode.tsx` de la brique `comptes` en donne
+  le modèle).
 - **Un statut inconnu ne s'affiche jamais comme un état sain** : un statut que
   l'écran ne sait pas lire se montre tel quel, avec sa valeur, jamais derrière
   le libellé ou le ton d'un état sain (un « tout va bien » sur un écran de

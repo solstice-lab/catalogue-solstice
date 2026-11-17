@@ -11,8 +11,8 @@ export default function Erreur({ error, reset }: { error: Error & { digest?: str
     <main className="sl-page sl-page-erreur">
       <Carte titre="Une erreur est survenue">
         <p>
-          La page n&apos;a pas pu s&apos;afficher. Réessayer suffit souvent ; si l&apos;erreur persiste, prévenir
-          l&apos;équipe technique.
+          La page n&apos;a pas pu s&apos;afficher. Si vous veniez d&apos;enregistrer, vérifier que l&apos;enregistrement
+          a eu lieu avant de recommencer ; si l&apos;erreur persiste, prévenir l&apos;équipe technique.
         </p>
         {error.digest && (
           <p className="sl-erreur-reference">

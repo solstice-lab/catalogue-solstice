@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { NextRequest } from "next/server";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
@@ -256,5 +256,23 @@ describe("accès protégé par défaut, dans proxy.ts", () => {
     expect(estOuverte("/connexion/microsoft/retour")).toBe(true);
     // Le lien de connexion du mail s'ouvre sans session : c'est lui qui l'ouvre.
     expect(estOuverte("/connexion/lien")).toBe(true);
+  });
+
+  // Next 16 fait planter l'application sans message quand un proxy et un
+  // middleware coexistent (cas d'un projet précédent) : le catalogue n'a que le
+  // proxy.
+  function middlewaresPresents(existe: (chemin: string) => boolean): string[] {
+    return ["middleware", "src/middleware"]
+      .flatMap((base) => ["ts", "js", "mjs"].map((extension) => `${base}.${extension}`))
+      .filter(existe);
+  }
+
+  it("garde un seul fichier de proxy : src/proxy.ts existe, aucun middleware.* à côté (les deux ensemble font planter Next sans message)", () => {
+    expect(existsSync(path.resolve(__dirname, "../src/proxy.ts"))).toBe(true);
+    expect(middlewaresPresents((chemin) => existsSync(path.resolve(__dirname, "..", chemin)))).toEqual([]);
+  });
+
+  it("repère un middleware posé à côté du proxy (cas fautif que le verrou doit attraper)", () => {
+    expect(middlewaresPresents((chemin) => chemin === "src/middleware.ts")).toEqual(["src/middleware.ts"]);
   });
 });

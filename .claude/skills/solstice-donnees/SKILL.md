@@ -83,6 +83,13 @@ est citée quand elle existe.
    valeur de la contrainte : seulement si plus aucune ligne ne la porte, sinon
    l'`ADD` échoue à chaque démarrage (même piège que l'index unique) ; l'étape
    migre ces lignes ou les signale, et la valeur reste admise en attendant.
+   **Une clé unique sur une colonne qui peut rester vide** (le parent d'un
+   arbre, une date de fin) : deux valeurs vides ne se heurtent pas dans un
+   index unique, donc deux racines de même nom passent (cas d'un arbre de
+   catégories). `NULLS NOT DISTINCT` (PostgreSQL 15 et plus) ou deux index
+   partiels, un par cas, posés dans la même étape que la colonne.
+   **Un taux ne se stocke pas** : on garde ses deux termes et on le recalcule
+   à l'affichage ; un taux stocké ne se somme ni ne se moyenne sans erreur.
 9. **Avec la brique rgpd, une table neuve se déclare dans
    `src/config/donnees-personnelles.ts`**, dans la même PR : comme source de l'export des
    données d'une personne, comme donnée non exportée avec sa raison, ou comme
@@ -118,6 +125,10 @@ brancher ») :
   côté serveur après l'écriture, même s'il s'affiche en lecture seule dans le
   formulaire. Un montant affiché sans être modifiable était quand même
   renvoyé, et sa valeur périmée écrasait la somme des montants mensuels.
+- **Une jointure qui peut ramener plusieurs lignes par clé se dédoublonne
+  avant de sommer** : deux affaires portant le même code projet auraient doublé
+  les temps d'une facture (relevé dans le code d'un projet antérieur, sans
+  incident). Agréger chaque côté par la clé, puis joindre.
 - **Les bornes font partie du patron : la base ne lève jamais à la place d'un
   message** (audit du 2026-11-09 : un montant géant, « 2026-06-31 » ou
   `/dossiers/99999999999` donnaient la page d'erreur). À copier avec le module :

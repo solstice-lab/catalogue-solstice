@@ -44,4 +44,26 @@ describe("client de base : pool créé à la première requête", () => {
     process.env.DATABASE_URL = urlDesTests;
     await expect(client.queryOne<{ un: number }>("SELECT 1 AS un")).resolves.toEqual({ un: 1 });
   });
+
+  it("ne met pas en cache l'échec de l'initialisation : une migration qui lève une fois, la requête suivante retente et réussit (une promesse rejetée mémorisée gardait toute l'application à terre jusqu'au redémarrage)", async () => {
+    // Seule la première migration échoue : le reste est le vrai code, sur la vraie base de test.
+    let appels = 0;
+    vi.doMock("../src/lib/db/migrations", async (importOriginal) => {
+      const reel = await importOriginal<typeof import("../src/lib/db/migrations")>();
+      return {
+        ...reel,
+        appliquerMigrations: async (pool: Parameters<typeof reel.appliquerMigrations>[0]) => {
+          appels++;
+          if (appels === 1) throw new Error("base momentanément injoignable");
+          return reel.appliquerMigrations(pool);
+        },
+      };
+    });
+    process.env.DATABASE_URL = urlDesTests;
+    const client = await import("../src/lib/db/client");
+
+    await expect(client.queryOne("SELECT 1")).rejects.toThrow(/momentanément injoignable/);
+    await expect(client.queryOne<{ un: number }>("SELECT 1 AS un")).resolves.toEqual({ un: 1 });
+    expect(appels).toBe(2);
+  });
 });
