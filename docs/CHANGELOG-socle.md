@@ -204,9 +204,9 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   catalogue, sous l'un ou l'autre nom.
 - **Pour l'appli** : rien à changer. Une appli assemblée avant ce changement
   se met à jour comme avant : l'outil rejoue chaque commit avec son propre
-  assembleur, et le nom du catalogue ne figure dans aucun fichier de l'appli
-  (son paquet porte son propre nom). Le prochain report propose seulement
-  les phrases de la NOTICE, du CLAUDE.md et des skills qui changent, comme
-  toute retouche.
+  assembleur, et le paquet de l'appli porte son propre nom. Le dépôt cité
+  dans quelques README de brique et le nom du `.devcontainer/` changent : le
+  prochain report les propose, comme les phrases de la NOTICE, du CLAUDE.md et
+  des skills, sans rien d'obligatoire.
 - **Pourquoi** : décision du 2026-11-17 de retirer « vibe » du nom ; le récit
   du projet l'avait déjà abandonné.
