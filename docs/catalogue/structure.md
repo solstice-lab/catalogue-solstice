@@ -154,8 +154,8 @@ node .claude/hooks/gardes.test.mjs
 npm run format:check   # npm run format met en forme
 npm run lint
 npm run typecheck
-DATABASE_URL=postgresql://postgres@localhost:5433/catalogue_solstice_vibe_test PGSSLMODE=disable npm test
-DATABASE_URL=postgresql://postgres@localhost:5433/catalogue_solstice_vibe_test PGSSLMODE=disable npm run test:assembleur   # long (plus de 10 min) ; la CI ne lance qu'un échantillon des combinaisons de l'assembleur sur chaque pull request, le complet la nuit
+DATABASE_URL=postgresql://postgres@localhost:5433/catalogue_solstice_test PGSSLMODE=disable npm test
+DATABASE_URL=postgresql://postgres@localhost:5433/catalogue_solstice_test PGSSLMODE=disable npm run test:assembleur   # long (plus de 10 min) ; la CI ne lance qu'un échantillon des combinaisons de l'assembleur sur chaque pull request, le complet la nuit
 npm run build
 ```
 

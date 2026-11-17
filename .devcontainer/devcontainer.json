@@ -9,7 +9,7 @@
 // une étiquette se déplace sans PR. Pour renouveler un digest, lire l'en-tête
 // Docker-Content-Digest du manifeste de l'étiquette en commentaire.
 {
-  "name": "Solstice-vibe",
+  "name": "Solstice Lab",
   // Node 24 sur Debian bookworm, avec git et l'utilisateur « node ».
   "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm@sha256:72c2f2a9a837cf27a8cad29a6031e48d852a31d1acd716379ee0b4fa543dcfc8",
   "features": {

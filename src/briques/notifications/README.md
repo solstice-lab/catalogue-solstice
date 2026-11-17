@@ -188,7 +188,7 @@ dans la pull request qui le fait : date, ce qui change pour l'appelant, raison.
 
 Tout se déclare côté appli, jamais dans la brique. L'exemple suit le patron
 `dossiers` (CLAUDE.md §3), qui se lit dans le catalogue public
-(`src/lib/db/dossiers.ts` du dépôt `solstice-lab/catalogue-solstice-vibe`),
+(`src/lib/db/dossiers.ts` du dépôt `solstice-lab/catalogue-solstice`),
 pas dans l'appli : l'appli branche à sa place son propre module écrit sur ce
 patron (sa table, son droit, ses fonctions de données). Dans l'exemple, la
 table `dossiers` porte `reference`, `client` et une colonne `echeance` de type

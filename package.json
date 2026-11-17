@@ -1,14 +1,14 @@
 {
-  "name": "catalogue-solstice-vibe",
+  "name": "catalogue-solstice",
   "version": "0.1.0",
   "description": "Catalogue d'applis web légères pour les outils internes des entreprises, assemblées avec Claude à partir d'un socle commun et de briques réutilisables",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/solstice-lab/catalogue-solstice-vibe.git"
+    "url": "git+https://github.com/solstice-lab/catalogue-solstice.git"
   },
-  "homepage": "https://github.com/solstice-lab/catalogue-solstice-vibe#readme",
+  "homepage": "https://github.com/solstice-lab/catalogue-solstice#readme",
   "bugs": {
-    "url": "https://github.com/solstice-lab/catalogue-solstice-vibe/issues"
+    "url": "https://github.com/solstice-lab/catalogue-solstice/issues"
   },
   "license": "MIT",
   "private": true,

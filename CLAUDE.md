@@ -1,6 +1,6 @@
-# Catalogue Solstice-vibe — règles de travail
+# Catalogue Solstice Lab — règles de travail
 
-Règles du catalogue `catalogue-solstice-vibe` et des applis web qu'il assemble
+Règles du catalogue `catalogue-solstice` et des applis web qu'il assemble
 (Next.js 16, React 19, TypeScript) : une appli assemblée reçoit ce fichier
 avec son code. Le *harnais*, c'est le socle et sa méthode : ces règles, les
 skills de `.claude/skills/` et les gardes de `.claude/hooks/` qui encadrent
@@ -101,7 +101,7 @@ node .claude/hooks/gardes.test.mjs   # si .claude/hooks/ a changé
 npm run format:check   # npm run format corrige ; le Markdown n'est pas mis en forme
 npm run lint
 npm run typecheck
-DATABASE_URL=postgresql://postgres@localhost:5433/<nom>_test PGSSLMODE=disable npm test   # brique données : <nom> = name de package.json, tirets en _ (catalogue_solstice_vibe_test dans le catalogue), base créée par scripts/bases-locales.ts ; sans elle, npm test seul
+DATABASE_URL=postgresql://postgres@localhost:5433/<nom>_test PGSSLMODE=disable npm test   # brique données : <nom> = name de package.json, tirets en _ (catalogue_solstice_test dans le catalogue), base créée par scripts/bases-locales.ts ; sans elle, npm test seul
 DATABASE_URL=<la même> PGSSLMODE=disable npm run test:assembleur   # catalogue : si outils/ ou un extrait qu'il retire change (plus de 10 min ; la CI le lance sur chaque PR)
 npm run build   # sans DATABASE_URL (brique données : le pool naît à la première requête, le build n'en fait aucune)
 ```

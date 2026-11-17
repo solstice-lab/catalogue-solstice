@@ -192,3 +192,21 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   commandes proposées à la place étaient illisibles pour une personne non
   développeuse. Sous Linux, le script affichait d'abord des commandes
   PowerShell.
+
+## 2026-11-17 · Le catalogue s'appelle catalogue-solstice · Changement
+
+- **Ce qui change** : le mot « vibe » sort du nom du catalogue. Le paquet
+  (`NOM_DU_CATALOGUE` d'`outils/modules.mjs`) et le dépôt deviennent
+  `catalogue-solstice`, les bases locales du catalogue
+  `catalogue_solstice_test`, et la prose dit « catalogue Solstice Lab »
+  (NOTICE, blueprint et en-têtes écrits par l'assembleur compris).
+  `outils/creer-issues.mjs` refuse toujours `--confirmer` sur le dépôt du
+  catalogue, sous l'un ou l'autre nom.
+- **Pour l'appli** : rien à changer. Une appli assemblée avant ce changement
+  se met à jour comme avant : l'outil rejoue chaque commit avec son propre
+  assembleur, et le nom du catalogue ne figure dans aucun fichier de l'appli
+  (son paquet porte son propre nom). Le prochain report propose seulement
+  les phrases de la NOTICE, du CLAUDE.md et des skills qui changent, comme
+  toute retouche.
+- **Pourquoi** : décision du 2026-11-17 de retirer « vibe » du nom ; le récit
+  du projet l'avait déjà abandonné.

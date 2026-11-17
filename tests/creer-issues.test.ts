@@ -301,11 +301,15 @@ describe("commande", () => {
     const { gh, creations } = fauxGh();
     const contexte = { gh, lireBlueprint: lire, ecrire: () => {} };
     expect(() =>
+      executer(["--blueprint", "b.md", "--depot", "solstice-lab/catalogue-solstice", "--confirmer"], contexte)
+    ).toThrow(/catalogue/);
+    // Le dépôt a porté un autre nom jusqu'au 2026-11-17 : l'ancienne adresse, que GitHub redirige, reste refusée.
+    expect(() =>
       executer(["--blueprint", "b.md", "--depot", "solstice-lab/catalogue-solstice-vibe", "--confirmer"], contexte)
     ).toThrow(/catalogue/);
     expect(creations()).toHaveLength(0);
     expect(() =>
-      executer(["--blueprint", "b.md", "--depot", "solstice-lab/catalogue-solstice-vibe"], contexte)
+      executer(["--blueprint", "b.md", "--depot", "solstice-lab/catalogue-solstice"], contexte)
     ).not.toThrow();
   });
 
