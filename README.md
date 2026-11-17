@@ -27,7 +27,7 @@ conséquence grave.
 ### On a fait les erreurs pour que vous ne les fassiez pas
 
 Ce catalogue vient de projets réels et de son propre usage, et de ce qui y a mal tourné.
-[`docs/cicatrices.md`](docs/cicatrices.md) en est le registre : plus de 160
+[`docs/cicatrices.md`](docs/cicatrices.md) en est le registre : près de 200
 leçons, chacune avec la règle qu'on en a tirée, le cas qui l'a motivée et ce qui
 la fait respecter aujourd'hui, test, skill, règle ou garde de Claude. Trois
 exemples :
@@ -45,9 +45,12 @@ exemples :
   l'autre. Désormais, deux lignes de même clé se somment ou se rejettent avec
   leur motif, et un test le verrouille.
 
-Le registre est honnête sur ses limites : environ deux leçons sur trois sont
-aujourd'hui tenues par un test, une skill, une règle ou une garde, et il dit
-lesquelles ne le sont pas encore.
+Le registre est honnête sur ses limites : plus de deux leçons sur trois sont
+aujourd'hui tenues par un test, une skill, une règle ou une garde. La plupart des
+autres viennent de fonctions que le catalogue n'a pas encore (synchronisation
+avec des sources externes, facturation, IA…) : elles attendent la brique qui en
+aura besoin, et servent au cadrage le jour où elle existera. Il reste une
+douzaine de vrais trous, signalés dans le registre.
 
 ### Du code qui a déjà servi
 
