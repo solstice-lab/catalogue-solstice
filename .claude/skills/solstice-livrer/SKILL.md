@@ -92,9 +92,10 @@ ne se colle jamais en clair : variable saisie sans écho. Sous bash :
   (sinon circuit complet), `CONTRIBUTING.md`. Un diff mixte, doc et code, suit le circuit complet.
 - **Circuit complet, toujours** : tout fichier de code ; `CLAUDE.md`, `.claude/skills/`,
   `.claude/agents/`, `.claude/hooks/` (des consignes, pas de la documentation) ; `SECURITY.md`,
-  `LICENSE`, tout `CHANGELOG.md` ; tout texte qu'un test lit ou qu'un extrait de
-  `outils/modules.mjs` (catalogue seulement) retrouve : le modifier peut casser l'assemblage.
-  Contrôle : `grep` d'une phrase du passage modifié dans `tests/` et dans `outils/modules.mjs`.
+  `LICENSE`, tout `CHANGELOG.md` ; tout texte qu'un test lit ou qu'un
+  extrait de l'assembleur du catalogue (`modules.mjs`, absent d'une appli) retrouve : le
+  modifier peut casser l'assemblage. Contrôle : `grep` d'une phrase du passage modifié dans
+  `tests/` et, au catalogue, dans `modules.mjs`.
 - **Allégé** (§1, §4, §5) : pas de ticket ni de `Closes #` par correction ; plusieurs
   corrections dans une même PR, que sa description liste une à une ; `relecteur-docs` seul,
   sans sous-agent général ; en local `npm run format:check` seul, la CI fait le reste.
