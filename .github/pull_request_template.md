@@ -2,7 +2,9 @@
      sujet du commit à la fusion. -->
 
 Closes #
-<!-- « Closes #n » si la fusion termine le ticket, « Refs #n » s'il continue. -->
+<!-- « Closes #n » si la fusion termine le ticket, « Refs #n » s'il continue.
+     Documentation seule (voie courte de solstice-livrer) : pas de ticket,
+     lister les corrections une à une plus bas. -->
 
 ## Ce que ça change
 

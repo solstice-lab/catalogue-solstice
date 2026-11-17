@@ -122,8 +122,8 @@ navigateur : la personne qui pilote le projet vérifie elle-même le rendu.
 - **Nouveau projet ou nouveau module** : charger la skill
   `solstice-nouvelle-appli` avant toute ligne de code ou d'infra (cadrage,
   fiche projet `PROJET.md`, socle, découpage en tickets).
-- **Toute tâche qui modifie le code** : charger la skill `solstice-livrer`
-  (ticket, branche, test d'abord, relecture, PR). Un humain fusionne.
+- **Toute tâche qui modifie le code, ou la documentation** : charger la skill `solstice-livrer`
+  (ticket, branche, test d'abord, relecture, PR ; voie courte pour la doc seule). Un humain fusionne.
 - **Avant une PR**, relire par sous-agents : l'agent `relecteur-migrations` si
   le diff touche `src/lib/db/` (brique données) ; l'agent `relecteur-docs` s'il renomme ou
   retire un fichier, un symbole, une route, une variable, ou touche un `.md`.
