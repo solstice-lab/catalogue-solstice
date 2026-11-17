@@ -58,7 +58,8 @@ même langue ; un ticket en anglais est lu et reçoit une réponse.
 1. **Un ticket d'abord.** Une anomalie ou une demande, avec les modèles
    proposés. Une demande = un changement : pas de refactor ni de correction sans
    rapport groupés dans la même PR (`CLAUDE.md`, section 5). Un ticket trop gros
-   pour être relu d'un coup se découpe.
+   pour être relu d'un coup se découpe. Documentation seule : voie courte, sans
+   ticket, plusieurs corrections par PR (skill `solstice-livrer`, §7).
 2. **Une branche** `<type>/<slug>` (`feature`, `fix`, `docs`) depuis un `main` à
    jour. Une session Claude garde le préfixe `claude/` que son worktree donne à sa
    branche (`claude/<nom>-<suffixe>`) : on ne la renomme pas.
@@ -75,7 +76,7 @@ corps qui donne le problème, la solution retenue et ce qui a été écarté.
 
 Les dossiers `.claude/` (skills, agents relecteurs, gardes) servent à travailler
 avec Claude Code. Ils sont la référence du circuit ci-dessus, en particulier la
-skill `solstice-livrer`, mais rien n'oblige à passer par Claude pour travailler sur le dépôt.
+skill `solstice-livrer` (dont sa voie courte pour la documentation seule), mais rien n'oblige à passer par Claude pour travailler sur le dépôt.
 
 Qui ouvre le dépôt dans Claude Code reçoit d'office le hook `PreToolUse` de
 `.claude/settings.json` : avant chaque commande et chaque écriture de fichier

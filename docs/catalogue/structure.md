@@ -121,7 +121,7 @@ les options écartées sont dans `.claude/skills/solstice-nouvelle-appli/socle.m
 - `.claude/skills/` — `solstice-ui` (kit et thématisation),
   `solstice-donnees` (base, modules, imports et leurs pièges),
   `solstice-nouvelle-appli` (cadrage, fiche projet, socle prêt pour la prod,
-  découpage), `solstice-livrer` (du ticket à la mise en ligne) et
+  découpage), `solstice-livrer` (du ticket à la mise en ligne, avec une voie courte pour la documentation) et
   `creer-appli` (le dialogue de cadrage, la blueprint, l'appel de l'assembleur, puis
   le dépôt distant privé créé après accord, puis les issues de la section 9, puis,
   ces tickets faits, les brouillons de tickets du catalogue tirés des adaptations de

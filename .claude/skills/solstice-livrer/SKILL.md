@@ -1,6 +1,6 @@
 ---
 name: solstice-livrer
-description: "Circuit d'un changement, du ticket à la vérification en ligne : ticket, branche, plan, tests, rendu validé par un humain, relecture par sous-agents, commit, pull request, fusion par un humain, contrôle. À charger au début de toute tâche qui modifie le code de l'appli, même petite (un champ, un bouton, un correctif)."
+description: "Circuit d'un changement, du ticket à la vérification en ligne : ticket, branche, plan, tests, rendu validé par un humain, relecture par sous-agents, commit, pull request, fusion par un humain, contrôle. À charger au début de toute tâche qui modifie le code de l'appli, même petite (un champ, un bouton, un correctif), ou sa documentation (voie courte, §7)."
 ---
 
 # solstice-livrer — du ticket à la mise en ligne
@@ -84,3 +84,19 @@ secrets, `--confirmer`, restauration). Claude prépare et dit quoi taper. Une UR
 ne se colle jamais en clair : variable saisie sans écho. Sous bash :
 `read -rs DATABASE_URL ; export DATABASE_URL`. Sous PowerShell (5.1 comme 7) :
 `$env:DATABASE_URL = [System.Net.NetworkCredential]::new('', (Read-Host -AsSecureString)).Password`.
+
+## 7. Voie courte : documentation seule
+
+- **Y a droit** un diff dont *tous* les fichiers sont de la documentation Markdown :
+  `README.md`, `docs/`, le README d'une brique sans changement de son interface publique
+  (sinon circuit complet), `CONTRIBUTING.md`. Un diff mixte, doc et code, suit le circuit complet.
+- **Circuit complet, toujours** : tout fichier de code ; `CLAUDE.md`, `.claude/skills/`,
+  `.claude/agents/`, `.claude/hooks/` (des consignes, pas de la documentation) ; `SECURITY.md`,
+  `LICENSE`, tout `CHANGELOG.md` ; tout texte qu'un test lit ou qu'un
+  extrait de l'assembleur du catalogue (`modules.mjs`, absent d'une appli) retrouve : le
+  modifier peut casser l'assemblage. Contrôle : `grep` d'une phrase du passage modifié dans
+  `tests/` et, au catalogue, dans `modules.mjs`.
+- **Allégé** (§1, §4, §5) : pas de ticket ni de `Closes #` par correction ; plusieurs
+  corrections dans une même PR, que sa description liste une à une ; `relecteur-docs` seul,
+  sans sous-agent général ; en local `npm run format:check` seul, la CI fait le reste.
+- **Gardé** : une branche, une PR, la CI verte, la fusion par un humain, les conventions du dépôt.
