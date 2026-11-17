@@ -54,7 +54,9 @@ CI, gardes de Claude, mise en ligne avec la brique déploiement) ; le reste est
   - Revenir sur ce choix est une décision de la personne responsable technique du projet.
 - Pages d'erreur et de page absente : jamais une page blanche, le digest reste affiché.
 - **Référencement fermé par défaut** (`src/lib/referencement.ts`) : `noindex` sur chaque
-  page et `robots.txt` qui interdit tout, sauf pour un site déclaré public, en production,
+  page (balise) et sur chaque réponse (en-tête `X-Robots-Tag` du proxy), sans `Disallow` dans
+  `robots.txt` : un robot qui n'explore pas la page ne lit pas son `noindex`. Ouvert seulement
+  pour un site déclaré public, en production,
   avec `URL_PUBLIQUE` et sans valeur « À compléter ». Une recette tourne aussi en
   `NODE_ENV=production` : seul le service de production déclare `URL_PUBLIQUE`. Les pages
   du sitemap s'ouvrent sans connexion (`tests/referencement.test.ts`).
@@ -154,7 +156,7 @@ listées clic par clic dans le ticket, Claude ne les fait pas.
    puis *Custom Domains* sur Render, puis le CNAME chez le registrar, puis `DEPLOIEMENT_URL`,
    puis `URL_PUBLIQUE` (`https://<domaine>`) sur le service.
 5. Vérifier `https://<domaine>/sante`, une connexion, le parcours principal, et
-   `https://<domaine>/robots.txt` : fermé (`Disallow: /`) sauf pour un site public complet.
+   `https://<domaine>/robots.txt` : sans `Disallow` ni plan du site, et l'en-tête `X-Robots-Tag: noindex, nofollow` sur une page (outils du navigateur, onglet Réseau ; sous PowerShell, `curl.exe -I <adresse>`), sauf pour un site public complet.
 6. Retour arrière : retirer le domaine, *Revert* sur la PR (sans défaire les migrations).
 
 Reprise de données existantes : **restaurer avant** de faire pointer l'appli sur la base.

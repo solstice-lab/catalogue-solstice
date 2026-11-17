@@ -76,8 +76,8 @@ les options écartées sont dans `.claude/skills/solstice-nouvelle-appli/socle.m
   `src/lib/confidentialite.ts`.
 - `src/app/robots.ts`, `sitemap.ts`, `opengraph-image.tsx`, `twitter-image.tsx`
   — référencement et aperçu au partage, remplis depuis
-  `src/lib/referencement.ts`. Fermés aux moteurs (`noindex`, `robots.txt` qui
-  interdit tout) hors production, sans `URL_PUBLIQUE`, pour un site qui n'est
+  `src/lib/referencement.ts`. Fermés aux moteurs (`noindex` par balise et par en-tête du
+  proxy, `robots.txt` sans `Disallow`) hors production, sans `URL_PUBLIQUE`, pour un site qui n'est
   pas public ou tant qu'une valeur reste « À compléter ». L'image lit ses
   couleurs dans `tokens.css` (`src/lib/image-partage.ts`). En production sans
   `URL_PUBLIQUE` (une recette), aucune image d'aperçu n'est annoncée : Next

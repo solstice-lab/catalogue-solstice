@@ -40,7 +40,10 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-const FERME = { rules: { userAgent: "*", disallow: "/" } };
+// Fermé, robots.txt n'interdit rien et ne nomme pas de plan du site : un Disallow
+// empêcherait les robots de lire le noindex, qui est le vrai verrou (src/proxy.ts
+// le pose sur toute réponse). Le verrou lui-même : tests/referencement-proxy.test.ts.
+const FERME = { rules: { userAgent: "*", allow: "/" } };
 
 describe("indexation : un site n'est ouvert aux moteurs que s'il le demande, en production, à son adresse", () => {
   it("ouvre robots.txt et nomme le sitemap quand tout est réuni", () => {
@@ -54,7 +57,7 @@ describe("indexation : un site n'est ouvert aux moteurs que s'il le demande, en 
 
   // Un site de test indexé fait concurrence au vrai, et ses données de démo
   // remontent dans les résultats.
-  it("ferme tout hors production, même avec une URL", () => {
+  it("n'ouvre rien (ni plan du site, ni Disallow) hors production, même avec une URL", () => {
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("URL_PUBLIQUE", URL_EXEMPLE);
     expect(reglesRobots(COMPLET)).toEqual(FERME);
@@ -62,7 +65,7 @@ describe("indexation : un site n'est ouvert aux moteurs que s'il le demande, en 
 
   // Une recette sur Render tourne aussi en NODE_ENV=production : c'est
   // l'absence d'URL_PUBLIQUE qui la garde fermée.
-  it("ferme tout en production sans URL_PUBLIQUE", () => {
+  it("n'ouvre rien (ni plan du site, ni Disallow) en production sans URL_PUBLIQUE", () => {
     enLigne("");
     expect(reglesRobots(COMPLET)).toEqual(FERME);
   });
@@ -72,19 +75,19 @@ describe("indexation : un site n'est ouvert aux moteurs que s'il le demande, en 
     ["sans schéma", "www.exemple.test"],
     ["avec un chemin", "https://www.exemple.test/site"],
     ["avec une requête", "https://www.exemple.test/?a=1"],
-  ])("ferme tout avec une URL_PUBLIQUE invalide (%s)", (_cas, url) => {
+  ])("n'ouvre rien avec une URL_PUBLIQUE invalide (%s)", (_cas, url) => {
     enLigne(url);
     expect(reglesRobots(COMPLET)).toEqual(FERME);
   });
 
   // Le garde-fou de l'outil interne : poser son URL (pour le canonique et
   // l'adresse de l'image) ne l'ouvre pas aux moteurs.
-  it("ferme tout pour un site qui n'est pas public, même en production avec son URL", () => {
+  it("n'ouvre rien (ni plan du site, ni Disallow) pour un site qui n'est pas public, même en production avec son URL", () => {
     enLigne();
     expect(reglesRobots({ ...COMPLET, sitePublic: false })).toEqual(FERME);
   });
 
-  it("ferme tout tant qu'un champ manque : un titre « à compléter » ne doit pas être indexé", () => {
+  it("n'ouvre rien (ni plan du site, ni Disallow) tant qu'un champ manque : un titre « à compléter » ne doit pas être indexé", () => {
     enLigne();
     expect(reglesRobots({ ...COMPLET, description: "  " })).toEqual(FERME);
     expect(reglesRobots({ ...COMPLET, nom: "NOM_APP" })).toEqual(FERME);

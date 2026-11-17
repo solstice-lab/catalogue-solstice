@@ -91,35 +91,54 @@ export function champsManquants(config: Referencement = REFERENCEMENT): string[]
   return manquants;
 }
 
+// LA décision d'ouvrir le site aux moteurs, à un seul endroit : la balise, robots.txt, le
+// plan du site et l'en-tête du proxy la lisent, et une condition ajoutée ici vaut
+// pour tous. Sans effet de bord : le proxy la prend à chaque requête.
+function indexationAutoriseeSansJournal(config: Referencement): boolean {
+  return process.env.NODE_ENV === "production" && config.sitePublic && champsManquants(config).length === 0;
+}
+
 /**
  * Vrai seulement pour un site public, en production, à son adresse publique,
  * et complet. Tout le reste (développement, recette, outil interne, valeur à
  * compléter) est fermé aux moteurs.
  */
 export function indexationAutorisee(config: Referencement = REFERENCEMENT): boolean {
-  if (process.env.NODE_ENV !== "production" || !config.sitePublic) return false;
-  // champsManquants exige aussi URL_PUBLIQUE, valide, d'un site public.
-  const manquants = champsManquants(config);
-  if (manquants.length === 0) return true;
+  if (indexationAutoriseeSansJournal(config)) return true;
   // Un site déclaré public qui reste fermé ne se voit sur aucune page : une
   // URL_PUBLIQUE en http ou oubliée chez l'hébergeur passerait inaperçue. Dit
   // une fois par démarrage, dans les journaux de l'hébergeur.
-  if (!fermetureSignalee) {
+  if (process.env.NODE_ENV === "production" && config.sitePublic && !fermetureSignalee) {
     fermetureSignalee = true;
-    console.warn(`Référencement : site public fermé aux moteurs, à compléter : ${manquants.join(" ; ")}.`);
+    console.warn(
+      `Référencement : site public fermé aux moteurs, à compléter : ${champsManquants(config).join(" ; ")}.`
+    );
   }
   return false;
 }
 let fermetureSignalee = false;
 
-// Fermé, robots.txt interdit tout, en plus de noindex. Conséquence connue :
-// Twitterbot et LinkedInBot respectent robots.txt et ne lisent donc pas
-// l'aperçu d'un outil interne en ligne. Variante, si un cas réel la demande :
-// en production avec URL_PUBLIQUE mais site non public, ouvrir l'exploration
-// et garder noindex ; la recette et le local restent fermés.
+/**
+ * L'en-tête X-Robots-Tag de toute réponse que voit le proxy (hors fichiers
+ * statiques de Next) quand l'indexation n'est pas autorisée (src/proxy.ts), ou null quand elle l'est. La balise de
+ * metadonneesRacine ne couvre que les pages rendues par la mise en page : cet
+ * en-tête couvre aussi les redirections vers la connexion, les routes et les
+ * fichiers.
+ */
+export function enTeteRobots(config: Referencement = REFERENCEMENT): string | null {
+  return indexationAutoriseeSansJournal(config) ? null : "noindex, nofollow";
+}
+
+// La fermeture aux moteurs tient par noindex (balise de metadonneesRacine, en-tête
+// de src/proxy.ts), jamais par un Disallow : un robot qui respecte robots.txt
+// n'explore pas la page et ne lit donc pas son noindex, et une adresse vue
+// ailleurs peut alors être indexée sans contenu (liens à jeton donnés à des
+// clients, sortis des moteurs par l'en-tête sans Disallow). Fermé, robots.txt
+// laisse donc explorer et ne nomme pas de plan du site. Effet voulu : Twitterbot
+// et LinkedInBot lisent l'aperçu d'un outil interne en ligne.
 export function reglesRobots(config: Referencement = REFERENCEMENT): MetadataRoute.Robots {
   const url = urlPublique();
-  if (!indexationAutorisee(config) || !url) return { rules: { userAgent: "*", disallow: "/" } };
+  if (!indexationAutorisee(config) || !url) return { rules: { userAgent: "*", allow: "/" } };
   return {
     rules: { userAgent: "*", allow: "/" },
     sitemap: new URL("/sitemap.xml", url).toString(),
@@ -163,9 +182,8 @@ export function metadonneesRacine(config: Referencement = REFERENCEMENT): Metada
     ...(urlPublique() && { metadataBase: urlPublique() }),
     title: { template: `%s · ${nom}`, default: nom },
     description: descriptionAffichee(config),
-    // En plus de robots.txt, pour les robots qui ne le lisent pas. Un robot
-    // qui le respecte n'explore pas la page et ne voit donc pas cette balise :
-    // une adresse vue ailleurs peut alors être indexée sans son contenu.
+    // Avec l'en-tête de src/proxy.ts, qui couvre aussi ce que la mise en page ne
+    // rend pas. robots.txt, lui, n'interdit rien : il faut pouvoir lire cette balise.
     ...(!indexationAutorisee(config) && { robots: { index: false, follow: false } }),
     // Ni titre ni description ici : Next reprend ceux de chaque page pour son
     // aperçu. L'image vient de opengraph-image.tsx et twitter-image.tsx, et
