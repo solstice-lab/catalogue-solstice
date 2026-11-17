@@ -28,6 +28,12 @@ title: ""
      vraie appli, puis s'extrait quand une deuxième en a besoin), et ce
      qu'elle exige du socle. Voir CONTRIBUTING.md. -->
 
+## Leçons du registre concernées
+
+<!-- Pour une brique ou un module métier : les leçons de docs/cicatrices.md qui touchent son
+     domaine, celles « Non tenue » ou « En partie » d'abord, chacune avec le
+     test qui la tiendra, ou « aucune » avec la section lue. -->
+
 ## Bloqué par
 
 <!-- Les tickets à fermer avant, ou « rien ». -->

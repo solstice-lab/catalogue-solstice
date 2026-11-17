@@ -125,7 +125,9 @@ Une brique est un comportement réutilisable branché sur une entité. Elle ne s
 conçoit pas dans le vide : elle naît dans une vraie appli, puis s'extrait
 quand une deuxième appli en a besoin. Ouvrir donc d'abord une **demande** qui
 décrit les deux usages concrets, ce que la brique ne fera pas en v1, et ce
-qu'elle exige du socle.
+qu'elle exige du socle. Cette demande reprend les leçons de
+[`docs/cicatrices.md`](docs/cicatrices.md) qui touchent le domaine de la brique,
+et la livraison met à jour la ligne de celles qu'elle tient désormais.
 
 Une brique livrée contient, dans `src/briques/<nom>/` :
 
