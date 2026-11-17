@@ -47,10 +47,12 @@ exemples :
 
 Le registre est honnête sur ses limites : plus de deux leçons sur trois sont
 aujourd'hui tenues par un test, une skill, une règle ou une garde. La plupart des
-autres viennent de fonctions que le catalogue n'a pas encore (synchronisation
-avec des sources externes, facturation, IA…) : elles attendent la brique qui en
-aura besoin, et servent au cadrage le jour où elle existera. Il reste une
-douzaine de vrais trous, signalés dans le registre.
+autres, celles que le registre marque « Non tenue », sont de deux sortes : les
+unes viennent de fonctions que le catalogue n'a pas encore (synchronisation
+avec des sources externes, facturation, IA…) et attendent la brique qui en
+aura besoin ; les autres relèvent du métier de chaque appli, et c'est sa
+blueprint qui les porte au cadrage. Les quelques leçons « En partie » disent,
+dans le registre, ce qui leur manque.
 
 ### Du code qui a déjà servi
 
