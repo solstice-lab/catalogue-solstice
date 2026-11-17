@@ -11,8 +11,8 @@
  * métier. L'envoi reste un geste humain, par un lien qui ouvre un ticket
  * prérempli du catalogue.
  *
- * Fonction pure : ni fichier, ni réseau. Qui l'appelle lit les issues
- * existantes et crée celles qu'elle rend.
+ * `brouillons` est pure : ni fichier, ni réseau. `deposer` et la ligne de
+ * commande (plus bas) lisent les issues existantes et créent celles qu'elle rend.
  *
  * - Un brouillon par note, pas par fichier : une note couvre souvent plusieurs
  *   fichiers (sur tours-de-coloc, une seule pour onze), et c'est elle qui
@@ -372,16 +372,25 @@ export function depotDuCatalogue(paquet) {
  * sa pull request, et jamais avec ce que le catalogue fusionne (prendre main
  * aurait exécuté tout commit du catalogue dans toutes les applis). C'est aussi
  * le commit auquel le manifeste compare les fichiers.
- * `checkout` : la ligne `actions/checkout@<sha> # vX` de ci.yml, reprise telle
- * quelle pour qu'une montée de version ne se fasse qu'à un endroit.
+ * `checkout`, `setupNode` : les lignes `actions/…@<sha> # vX` de ci.yml, et
+ * `versionDeNode` la sienne, reprises telles quelles : une montée de version se
+ * fait dans ci.yml, et l'assemblage suivant la reporte ici. Le Node du runner
+ * n'est pas celui qu'exige engines (24 et plus) : sans setup-node, l'outil
+ * tournerait sur une version que le catalogue ne vérifie pas.
  */
-export function fichierDeCI({ depot, commit, checkout }) {
+export function fichierDeCI({ depot, commit, checkout, setupNode, versionDeNode }) {
   if (!DEPOT.test(depot ?? "")) throw new ErreurRetour(`« ${depot} » n'est pas un dépôt GitHub propriétaire/nom.`);
   if (!SHA.test(commit ?? "")) {
     throw new ErreurRetour(`« ${commit} » n'est pas un SHA complet : l'action du catalogue s'épingle par son commit.`);
   }
   if (!/^actions\/checkout@[0-9a-f]{40}( #.*)?$/.test(checkout ?? "")) {
     throw new ErreurRetour(`« ${checkout} » n'est pas une action checkout épinglée par SHA.`);
+  }
+  if (!/^actions\/setup-node@[0-9a-f]{40}( #.*)?$/.test(setupNode ?? "")) {
+    throw new ErreurRetour(`« ${setupNode} » n'est pas une action setup-node épinglée par SHA.`);
+  }
+  if (!/^\d+$/.test(versionDeNode ?? "")) {
+    throw new ErreurRetour(`« ${versionDeNode} » n'est pas une version majeure de Node.`);
   }
   return [
     "name: Retour au catalogue",
@@ -398,8 +407,9 @@ export function fichierDeCI({ depot, commit, checkout }) {
     "#",
     "# L'action vient du catalogue, épinglée au commit de l'assemblage ou de la",
     "# dernière mise à jour : le code qui tourne ici avec le droit d'écrire des issues",
-    "# ne change qu'avec une mise à jour relue dans une pull request. Issues fermées",
-    "# au dépôt ou refusées au jeton : le passage le dit et s'arrête, sans échec.",
+    "# ne change que par une pull request relue (une mise à jour depuis le catalogue).",
+    "# Issues fermées au dépôt, refusées au jeton ou injoignables : le passage le dit",
+    "# et s'arrête, sans échec.",
     "",
     "on:",
     "  push:",
@@ -428,6 +438,9 @@ export function fichierDeCI({ depot, commit, checkout }) {
     "          # l'assemblage l'a donné, retrouvé dans les commits de l'appli.",
     "          fetch-depth: 0",
     "          persist-credentials: false",
+    `      - uses: ${setupNode}`,
+    "        with:",
+    `          node-version: "${versionDeNode}"`,
     `      - uses: ${depot}/${ACTION}@${commit}`,
     "        with:",
     `          catalogue: ${depot}`,
@@ -458,8 +471,8 @@ export async function deposer({ resultat, depot, api }) {
   const refus = (erreur, etape) => {
     if (!(erreur instanceof ErreurAPI)) throw erreur;
     avertissements.push(
-      `Les issues du dépôt ont refusé ${etape} (${erreur.message}) : issues fermées au dépôt, ou jeton sans le droit ` +
-        "issues: write. Rien n'est déposé ; les adaptations se lisent toujours dans ADAPTATIONS.md."
+      `L'API des issues a refusé ${etape} (${erreur.message}) : issues fermées au dépôt, jeton sans le droit ` +
+        "issues: write, ou GitHub injoignable. Rien de plus n'est déposé ; les adaptations se lisent toujours dans ADAPTATIONS.md."
     );
   };
   let existants;
@@ -483,19 +496,29 @@ export async function deposer({ resultat, depot, api }) {
   return { crees, avertissements };
 }
 
-// L'API REST de GitHub, avec le jeton du passage. L'étiquette qui existe déjà (422) n'est pas un refus.
-function apiDeGitHub({ jeton, depotAppli, racine = "https://api.github.com" }) {
+/*
+ * L'API REST de GitHub, avec le jeton du passage. L'étiquette qui existe déjà
+ * (422) n'est pas un refus. Une erreur de réseau devient un refus (statut 0) :
+ * comme des issues fermées, elle ne fait pas échouer le passage.
+ * `chercher` : fetch, remplacé dans les tests (la seule frontière).
+ */
+export function apiDeGitHub({ jeton, depotAppli, racine = "https://api.github.com", chercher = fetch }) {
   const appeler = async (methode, chemin, corps) => {
-    const reponse = await fetch(`${racine}/repos/${depotAppli}${chemin}`, {
-      method: methode,
-      headers: {
-        accept: "application/vnd.github+json",
-        authorization: `Bearer ${jeton}`,
-        "x-github-api-version": "2022-11-28",
-        ...(corps === undefined ? {} : { "content-type": "application/json" }),
-      },
-      body: corps === undefined ? undefined : JSON.stringify(corps),
-    });
+    let reponse;
+    try {
+      reponse = await chercher(`${racine}/repos/${depotAppli}${chemin}`, {
+        method: methode,
+        headers: {
+          accept: "application/vnd.github+json",
+          authorization: `Bearer ${jeton}`,
+          "x-github-api-version": "2022-11-28",
+          ...(corps === undefined ? {} : { "content-type": "application/json" }),
+        },
+        body: corps === undefined ? undefined : JSON.stringify(corps),
+      });
+    } catch (erreur) {
+      throw new ErreurAPI(`${methode} ${chemin} : ${erreur.message}`, 0);
+    }
     if (!reponse.ok) throw new ErreurAPI(`${methode} ${chemin} : ${reponse.status}`, reponse.status);
     return reponse.status === 204 ? null : reponse.json();
   };

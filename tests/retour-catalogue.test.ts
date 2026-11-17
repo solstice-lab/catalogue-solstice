@@ -1,9 +1,11 @@
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ACTION,
+  apiDeGitHub,
   brouillons,
   deposer,
   depotDuCatalogue,
@@ -341,17 +343,29 @@ describe("outils/retour-catalogue.mjs", () => {
 
 const SHA_DE_TEST = "fedcba9876543210fedcba9876543210fedcba98";
 const CHECKOUT = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1";
+const SETUP_NODE = "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0";
+const ACTIONS = { checkout: CHECKOUT, setupNode: SETUP_NODE, versionDeNode: "24" };
 
 describe("le fichier de CI du retour au catalogue, livré à l'appli", () => {
-  const fichier = fichierDeCI({ depot: DEPOT, commit: SHA_DE_TEST, checkout: CHECKOUT });
+  const fichier = fichierDeCI({ depot: DEPOT, commit: SHA_DE_TEST, ...ACTIONS });
 
   it("appelle l'action du catalogue épinglée au commit de l'assemblage, et lui donne le même dépôt pour ses liens", () => {
     expect(fichier).toContain(`      - uses: ${DEPOT}/${ACTION}@${SHA_DE_TEST}\n`);
     expect(fichier).toContain(`          catalogue: ${DEPOT}\n`);
     expect(fichier).toContain(`      - uses: ${CHECKOUT}\n`);
+    // Le Node qu'exige engines, pas celui du runner : l'outil tourne sur la version que le catalogue vérifie.
+    expect(fichier).toContain(`      - uses: ${SETUP_NODE}\n        with:\n          node-version: "24"\n`);
+    expect(fichier.indexOf(SETUP_NODE)).toBeLessThan(fichier.indexOf(`${DEPOT}/${ACTION}@`));
+    for (const fautif of [
+      { setupNode: "actions/setup-node@v7" },
+      { versionDeNode: "lts" },
+      { checkout: "actions/checkout@main" },
+    ]) {
+      expect(() => fichierDeCI({ depot: DEPOT, commit: SHA_DE_TEST, ...ACTIONS, ...fautif })).toThrow(ErreurRetour);
+    }
     // Une étiquette ou une branche se déplace sans relecture chez l'appli : un SHA complet seul.
     for (const commit of ["main", "v1", "abc1234", `${SHA_DE_TEST}0`]) {
-      expect(() => fichierDeCI({ depot: DEPOT, commit, checkout: CHECKOUT })).toThrow(ErreurRetour);
+      expect(() => fichierDeCI({ depot: DEPOT, commit, ...ACTIONS })).toThrow(ErreurRetour);
     }
   });
 
@@ -396,6 +410,10 @@ describe("le fichier de CI du retour au catalogue, livré à l'appli", () => {
     const [, relatif] = /"\$GITHUB_ACTION_PATH\/([^"]+)"/.exec(run) ?? [];
     expect(path.normalize(path.join(ACTION, relatif ?? ""))).toBe(path.normalize("outils/retour-catalogue.mjs"));
     expect(run).not.toContain("${{");
+    // Les valeurs arrivent par l'environnement de l'étape, et la commande ne lit que lui.
+    expect(action).toMatch(/\n {8}CATALOGUE: \$\{\{ inputs\.catalogue \}\}\n/);
+    expect(action).toMatch(/\n {8}GITHUB_TOKEN: \$\{\{ inputs\.jeton \}\}\n/);
+    expect(run).toMatch(/"\$GITHUB_WORKSPACE" --depot "\$CATALOGUE"/);
   });
 });
 
@@ -458,18 +476,119 @@ describe("le dépôt des brouillons dans les issues de l'appli", () => {
       const { api, crees } = apiFactice([], refus);
       const rendu = await deposer({ resultat, depot: DEPOT, api });
       expect(crees).toEqual([]);
-      expect(rendu.avertissements.join("\n")).toMatch(/issues/);
+      expect(rendu.avertissements).toHaveLength(1);
+      expect(rendu.avertissements[0]).toContain(`refusé (${refus.statut})`);
     }
   });
 
-  it("dit sans échouer qu'un dossier n'est pas une appli assemblée (le catalogue lui-même, une appli sans manifeste)", () => {
-    const sortie = spawnSync(
-      process.execPath,
-      [path.join(process.cwd(), "outils", "retour-catalogue.mjs"), process.cwd(), "--depot", DEPOT],
-      { encoding: "utf-8", env: { ...process.env, GITHUB_TOKEN: "", GITHUB_REPOSITORY: "" } }
-    );
-    expect(sortie.stderr).toBe("");
-    expect(sortie.status).toBe(0);
-    expect(sortie.stdout).toMatch(/^::notice::.*rien à déposer/m);
+  it("dit sans échouer qu'un dossier n'est pas une appli assemblée (le catalogue lui-même, un dépôt sans manifeste)", () => {
+    const sansManifeste = fs.mkdtempSync(path.join(os.tmpdir(), "sans-manifeste-"));
+    try {
+      const git = (...args: string[]) =>
+        execFileSync("git", [
+          "-C",
+          sansManifeste,
+          "-c",
+          "user.name=essai",
+          "-c",
+          "user.email=essai@exemple.org",
+          ...args,
+        ]);
+      git("init", "-q");
+      fs.writeFileSync(path.join(sansManifeste, "README.md"), "# Un dépôt quelconque\n");
+      git("add", "-A");
+      git("commit", "-q", "-m", "Départ");
+      for (const dossier of [process.cwd(), sansManifeste]) {
+        const sortie = spawnSync(
+          process.execPath,
+          [path.join(process.cwd(), "outils", "retour-catalogue.mjs"), dossier, "--depot", DEPOT],
+          { encoding: "utf-8", env: { ...process.env, GITHUB_TOKEN: "", GITHUB_REPOSITORY: "" } }
+        );
+        expect(sortie.stderr).toBe("");
+        expect(sortie.status).toBe(0);
+        expect(sortie.stdout).toMatch(/^::notice::.*rien à déposer/m);
+      }
+    } finally {
+      fs.rmSync(sansManifeste, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("l'API des issues de GitHub, derrière deposer", () => {
+  type Reponse = { status: number; corps?: unknown };
+  // fetch remplacé : la seule frontière. Chaque appel prend la réponse suivante.
+  function chercheur(reponses: (Reponse | Error)[]) {
+    const appels: { url: string; methode: string; corps?: Record<string, unknown> }[] = [];
+    const chercher = async (url: string, init: { method: string; body?: string }) => {
+      appels.push({ url, methode: init.method, corps: init.body === undefined ? undefined : JSON.parse(init.body) });
+      const suivante = reponses.shift();
+      if (suivante === undefined) throw new Error("appel de trop");
+      if (suivante instanceof Error) throw suivante;
+      return {
+        ok: suivante.status >= 200 && suivante.status < 300,
+        status: suivante.status,
+        json: async () => suivante.corps,
+      };
+    };
+    // Seuls url, method, body, ok, status et json servent : le reste de fetch n'est pas simulé.
+    return { appels, chercher: chercher as unknown as typeof fetch };
+  }
+  const options = { jeton: "jeton-de-test", depotAppli: "exemple/appli", racine: "https://api.exemple.org" };
+
+  it("lit toutes les pages des issues étiquetées, ouvertes comme fermées", async () => {
+    const pleine = Array.from({ length: 100 }, (_, rang) => ({ body: `corps ${rang}` }));
+    const { appels, chercher } = chercheur([
+      { status: 200, corps: pleine },
+      { status: 200, corps: [{ body: "dernier" }, { body: null }] },
+    ]);
+    const corps = await apiDeGitHub({ ...options, chercher }).corpsDesIssues(ETIQUETTE);
+    expect(corps).toHaveLength(102);
+    expect(corps.at(-2)).toBe("dernier");
+    expect(corps.at(-1)).toBe("");
+    expect(appels.map(({ url }) => url)).toEqual([
+      `https://api.exemple.org/repos/exemple/appli/issues?labels=${ETIQUETTE}&state=all&per_page=100&page=1`,
+      `https://api.exemple.org/repos/exemple/appli/issues?labels=${ETIQUETTE}&state=all&per_page=100&page=2`,
+    ]);
+  });
+
+  it("prend une étiquette qui existe déjà (422) pour faite, et un autre refus pour un refus", async () => {
+    const existe = chercheur([{ status: 422 }]);
+    await expect(
+      apiDeGitHub({ ...options, chercher: existe.chercher }).creerLEtiquette(ETIQUETTE)
+    ).resolves.toBeUndefined();
+    expect(existe.appels[0]).toMatchObject({ methode: "POST", corps: { name: ETIQUETTE } });
+    const refuse = chercheur([{ status: 403 }]);
+    await expect(
+      apiDeGitHub({ ...options, chercher: refuse.chercher }).creerLEtiquette(ETIQUETTE)
+    ).rejects.toMatchObject({
+      statut: 403,
+    });
+  });
+
+  it("ne fait pas échouer le passage sur des issues fermées (410) ni sur GitHub injoignable : il le dit", async () => {
+    const resultat = resultatDe([accueil()]);
+    for (const reponse of [{ status: 410 }, new Error("getaddrinfo ENOTFOUND")]) {
+      const { chercher } = chercheur([reponse]);
+      const rendu = await deposer({ resultat, depot: DEPOT, api: apiDeGitHub({ ...options, chercher }) });
+      expect(rendu.crees).toEqual([]);
+      expect(rendu.avertissements).toHaveLength(1);
+      expect(rendu.avertissements[0]).toMatch(reponse instanceof Error ? /ENOTFOUND/ : /: 410/);
+    }
+  });
+
+  it("crée chaque brouillon sous l'étiquette, avec son titre et son corps", async () => {
+    const { appels, chercher } = chercheur([{ status: 200, corps: [] }, { status: 201 }, { status: 201, corps: {} }]);
+    const rendu = await deposer({
+      resultat: resultatDe([accueil()]),
+      depot: DEPOT,
+      api: apiDeGitHub({ ...options, chercher }),
+    });
+    expect(rendu.avertissements).toEqual([]);
+    expect(appels.map(({ methode, url }) => `${methode} ${url.replace(/\?.*/, "")}`)).toEqual([
+      "GET https://api.exemple.org/repos/exemple/appli/issues",
+      "POST https://api.exemple.org/repos/exemple/appli/labels",
+      "POST https://api.exemple.org/repos/exemple/appli/issues",
+    ]);
+    expect(appels[2].corps).toMatchObject({ title: rendu.crees[0], labels: [ETIQUETTE] });
   });
 });

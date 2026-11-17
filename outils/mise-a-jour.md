@@ -55,7 +55,9 @@ doivent être **toutes** égales à celles du manifeste de l'appli. Au premier �
 s'arrête en nommant les fichiers : une fusion contre une origine fausse attribuerait à
 l'appli des retouches qu'elle n'a pas faites, ou l'inverse. Le manifeste ne couvre que les
 fichiers venus du catalogue : ni `NOTICE`, ni `ADAPTATIONS.md`, ni `blueprint.md`, que
-l'assembleur écrit lui-même, n'y ont d'empreinte. L'origine de `NOTICE` n'est donc pas prouvée ; elle ne
+l'assembleur écrit lui-même, n'y ont d'empreinte. Le fichier de CI du retour au catalogue
+(`.github/workflows/retour-catalogue.yml`), lui aussi écrit par l'assembleur, y a la sienne : il ne
+dépend que du commit du catalogue et de ses fichiers, que le rejeu redonne. L'origine de `NOTICE` n'est donc pas prouvée ; elle ne
 dépend que de `LICENSE` et de la licence des polices au commit A.
 
 L'origine et la cible se lisent dans le commit que l'assembleur rejoué a fait, comme

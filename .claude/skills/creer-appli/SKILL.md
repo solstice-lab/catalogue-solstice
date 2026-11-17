@@ -390,7 +390,8 @@ remote et ne pousse rien** : elle copie les fichiers que git suit, retouche les 
 partagés du socle selon `outils/modules.mjs` puis les remet en forme par Prettier, écrit `blueprint.md`, `NOTICE` (l'avis de
 licence), `catalogue.empreintes.json` (le manifeste d'empreintes des fichiers venus du
 catalogue, à ne pas retoucher à la main), `ADAPTATIONS.md` (le registre des adaptations, vide
-avec son en-tête, étape 7) et `PROJET.md` (la fiche, telle quelle) à la **racine** du dossier, puis en fait un dépôt git **local** : branche
+avec son en-tête, étape 7) et `PROJET.md` (la fiche, telle quelle) à la **racine** du dossier, et
+`.github/workflows/retour-catalogue.yml` (la CI qui prépare le retour des adaptations au catalogue), puis en fait un dépôt git **local** : branche
 `main`, un seul commit « Socle : appli assemblée depuis le catalogue au commit `<commit>` »,
 avec les briques gardées, ajoutées d'office et retirées dans le corps. Elle exige une identité git
 (`user.name`, `user.email`) et vérifie que la racine du dépôt est bien le dossier de sortie,

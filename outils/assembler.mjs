@@ -1086,16 +1086,21 @@ function versionDuCatalogue(racine) {
  * la mise à jour rejoue l'assemblage au commit visé, le remplace s'il est
  * intact (nouveau commit épinglé), l'ajoute à une appli assemblée avant lui,
  * le fusionne s'il est retouché. Le dépôt vient du package.json du catalogue,
- * l'action checkout de son ci.yml : chacun n'est écrit qu'à un endroit.
+ * les actions checkout et setup-node et la version de Node de son ci.yml :
+ * chacun n'est écrit qu'à un endroit.
  */
 function contenuDuRetourAuCatalogue(racine, commitComplet) {
   const ci = fs.readFileSync(path.join(racine, ".github", "workflows", "ci.yml"), "utf-8");
   const checkout = /^\s*- uses: (actions\/checkout@[0-9a-f]{40}[^\r\n]*)$/m.exec(ci)?.[1];
+  const setupNode = /^\s*- uses: (actions\/setup-node@[0-9a-f]{40}[^\r\n]*)$/m.exec(ci)?.[1];
+  const versionDeNode = /^\s*node-version: "?(\d+)"?\s*$/m.exec(ci)?.[1];
   try {
     return fichierDeCI({
       depot: depotDuCatalogue(JSON.parse(fs.readFileSync(path.join(racine, "package.json"), "utf-8"))),
       commit: commitComplet,
       checkout,
+      setupNode,
+      versionDeNode,
     });
   } catch (erreur) {
     if (erreur instanceof ErreurRetour) throw new ErreurAssemblage(erreur.message);
@@ -1397,8 +1402,10 @@ export function assembler({
     ecrits.filter((chemin) => textes.has(chemin) || chemin === FICHIER_DE_CI)
   );
 
-  // Les fichiers venus du catalogue, après la mise en forme : ni ceux que
-  // l'assembleur écrit lui-même, ni le manifeste.
+  // Les fichiers venus du catalogue, après la mise en forme : ni blueprint.md,
+  // NOTICE, ADAPTATIONS.md, PROJET.md (écrits ensuite, à l'appli), ni le
+  // manifeste. Le fichier de CI du retour, écrit plus haut, en est : il suit le
+  // catalogue à chaque mise à jour.
   const venusDuCatalogue = [...ecrits];
   const gardees = unites.filter((unite) => unite.gardee);
   const uniteDe = (chemin) => gardees.find((unite) => correspond(chemin, unite.definition.fichiers))?.nom ?? "socle";

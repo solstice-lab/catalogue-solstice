@@ -1,4 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -158,6 +159,12 @@ describe("outils/adaptations.mjs", { timeout: ENTIER }, () => {
       fs.readFileSync(path.join(SOURCE, ".github", "workflows", "ci.yml"), "utf-8")
     )?.[1];
     expect(fichier).toContain(`- uses: ${checkout}`);
+    // L'empreinte notée est celle du fichier livré, mis en forme : intact, il se remplace à la mise à jour.
+    expect(manifeste.fichiers[FICHIER_DE_CI].sha256).toBe(
+      createHash("sha256")
+        .update(gitDans(assemble, "show", `HEAD:${FICHIER_DE_CI}`) + "\n")
+        .digest("hex")
+    );
     // Ni l'action ni l'outil ne partent avec l'appli : elle les appelle au catalogue.
     expect(fs.existsSync(path.join(assemble, ACTION))).toBe(false);
     // Intact, il n'est pas une adaptation.
