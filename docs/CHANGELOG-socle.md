@@ -210,3 +210,25 @@ sont pas repris : aucune appli réelle n'avait encore été assemblée.
   des skills, sans rien d'obligatoire.
 - **Pourquoi** : décision du 2026-11-17 de retirer « vibe » du nom ; le récit
   du projet l'avait déjà abandonné.
+
+## 2026-11-17 · Fermeture aux moteurs par noindex seul · Correction
+
+- **Ce qui change** : un site fermé aux moteurs (développement, recette sans
+  `URL_PUBLIQUE`, site non public, réglage incomplet) ne l'est plus par un
+  `Disallow: /` dans `robots.txt`, mais par `noindex` seul : la balise de la
+  mise en page, et un en-tête `X-Robots-Tag: noindex, nofollow` que
+  `src/proxy.ts` pose sur toute réponse (redirections, routes et fichiers
+  compris, ce que la balise ne couvre pas). `robots.txt` laisse explorer et ne
+  nomme pas de plan du site. Un site public ouvert ne change pas. Effet : les
+  robots d'aperçu de réseaux sociaux lisent l'image de partage d'un outil
+  interne en ligne.
+- **Pour l'appli** : rien à changer. `src/lib/referencement.ts`, `src/proxy.ts` et
+  leurs tests arrivent par la mise à jour. Une appli
+  qui a retouché `src/proxy.ts` (CSP ou garde propres) reporte à la main la
+  fonction `fermeeAuxMoteurs` et ses deux appels. Après la mise à jour, une
+  recette doit répondre `X-Robots-Tag: noindex, nofollow` à `curl -I` sur une
+  page, et un `robots.txt` sans `Disallow`.
+- **Pourquoi** : un robot qui respecte `robots.txt` n'explore pas la page et ne
+  lit donc jamais son `noindex` : une adresse vue ailleurs peut être indexée
+  sans contenu. Des liens à jeton donnés à des clients d'une appli livrée sont
+  sortis des moteurs par l'en-tête, sans `Disallow`.

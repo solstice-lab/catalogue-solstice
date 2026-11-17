@@ -81,7 +81,7 @@ en reporte aux tickets, la durée de conservation comprise.
 - **Une instance de recette** peut se mettre en ligne avant les mentions légales et la
   politique de confidentialité du client, à deux conditions qui la séparent d'une mise en
   ligne publique : elle est **fermée aux moteurs** (site fermé, ou service sans
-  `URL_PUBLIQUE` : `noindex` et `robots.txt` qui interdit tout, `socle.md`), et **aucun vrai
+  `URL_PUBLIQUE` : `noindex` par balise et par en-tête, `robots.txt` sans `Disallow`, `socle.md`), et **aucun vrai
   membre n'y entre** (l'accès se limite à l'équipe du projet : `COMPTES_PREMIER_ADMIN`, une
   liste d'adresses). Ses pages affichent alors « À compléter ». Cas d'origine : à la
   recette du 2026-11-06, pour une association dont l'identité n'était pas encore connue,

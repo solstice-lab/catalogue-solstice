@@ -409,6 +409,8 @@ export const BRIQUES = {
       "tests/comptes-isolement.test.ts",
       "tests/comptes-session.test.ts",
       "tests/comptes-proxy.test.ts",
+      // Il pose les méthodes de connexion et lit la liste ouverte de la brique.
+      "tests/referencement-proxy.test.ts",
       "tests/comptes-code-email.test.ts",
       "tests/comptes-lien-email.test.ts",
       "tests/comptes-administration.test.ts",

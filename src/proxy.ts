@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { protegerLaRoute } from "@/briques/comptes/protection";
+import { enTeteRobots } from "@/lib/referencement";
 
 /*
  * Content-Security-Policy à nonce. Mesure faite sur un build
@@ -38,12 +39,21 @@ function politiqueDeContenu(nonce: string): string {
   ].join("; ");
 }
 
+// Fermé aux moteurs, toute réponse du proxy le dit, redirections et routes comprises : la
+// balise noindex ne couvre que les pages HTML, et robots.txt n'interdit rien
+// (un Disallow empêcherait de lire le noindex ; src/lib/referencement.ts).
+function fermeeAuxMoteurs(reponse: NextResponse): NextResponse {
+  const robots = enTeteRobots();
+  if (robots) reponse.headers.set("X-Robots-Tag", robots);
+  return reponse;
+}
+
 export function proxy(requete: NextRequest): NextResponse {
   // Brique comptes : sans session, la requête part vers /connexion. Une
   // redirection (ou le 404 d'une route hors production) n'exécute aucun
   // script, elle n'a pas besoin de la CSP.
   const refus = protegerLaRoute(requete);
-  if (refus) return refus;
+  if (refus) return fermeeAuxMoteurs(refus);
   // Fin de la brique comptes.
   const nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString("base64");
   const csp = politiqueDeContenu(nonce);
@@ -52,7 +62,7 @@ export function proxy(requete: NextRequest): NextResponse {
   enTetesRequete.set("Content-Security-Policy", csp);
   const reponse = NextResponse.next({ request: { headers: enTetesRequete } });
   reponse.headers.set("Content-Security-Policy", csp);
-  return reponse;
+  return fermeeAuxMoteurs(reponse);
 }
 
 // Les fichiers statiques n'exécutent aucun script de la page : un nonce n'y
