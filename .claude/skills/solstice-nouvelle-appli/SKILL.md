@@ -113,10 +113,10 @@ en reporte aux tickets, la durée de conservation comprise.
   comme une exigence du ticket, avec le test qui la tiendra ; celles marquées « Non tenue »
   ou « En partie » d'abord, puisque rien d'autre ne les retient.
 - À la livraison, une leçon désormais tenue met à jour sa ligne du registre dans la même
-  PR : « Tenue par » renvoie vers ce qui la tient (`fichier:ligne` du test ou de la règle).
-  Au catalogue, un test refuse un renvoi sur une ligne vide, une simple fermeture ou hors
-  du fichier, mais pas sur une ligne voisine ; une appli assemblée ne l'a pas : relire
-  dans tous les cas la ligne visée.
+  PR : « Tenue par » renvoie vers ce qui la tient : le fichier, puis un fragment de
+  l'intitulé du test, ou une expression exacte de la règle (voir l'en-tête du registre).
+  Au catalogue, un test refuse une cible absente ou citée deux fois ; une appli
+  assemblée ne l'a pas : relire dans tous les cas que la cible existe et tient la règle.
 
 ## 2. Choisir la forme la plus légère
 

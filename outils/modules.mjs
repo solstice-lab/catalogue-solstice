@@ -78,7 +78,7 @@ export const EXCLUS_DU_CATALOGUE = [
   // Verrouille l'outil des issues de la section 9 (outils/creer-issues.mjs),
   // absent de l'appli : sans lui, ce test ne trouverait rien à importer.
   "tests/creer-issues.test.ts",
-  // Verrouille les renvois fichier:ligne et le compteur de tête du registre docs/cicatrices.md : les renvois
+  // Verrouille les renvois nommés (intitulé de test, expression) et le compteur de tête du registre docs/cicatrices.md : les renvois
   // visent des tests et des briques que l'appli n'a pas toujours gardés.
   "tests/cicatrices.test.ts",
   // Verrouille le job qui lance le test de l'assembleur (assemblage.yml).

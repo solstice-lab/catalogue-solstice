@@ -1382,7 +1382,7 @@ describe("blueprint donnée à l'assembleur", () => {
 
   // Cas d'origine (audit du 2026-11-09) : une faute de chemin à --blueprint aurait copié
   // n'importe quel fichier lisible (une clé privée) dans le premier commit de l'appli.
-  describe("refuse, avant toute écriture, un fichier qui n'est pas un texte à copier dans le dépôt", () => {
+  describe("refuse, avant toute écriture, un fichier qui n'est pas un texte à copier dans le dépôt (--blueprint)", () => {
     // Le mot de passe est coupé en deux : ce fichier-ci ne doit pas déclencher
     // les gardes de Claude, qui lisent le texte qu'il écrit.
     const CLE = "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjE=\n-----END OPENSSH PRIVATE KEY-----\n";
@@ -2757,7 +2757,7 @@ describe("fiche projet donnée à l'assembleur", () => {
 
   // Cas d'origine (audit du 2026-11-09) : une faute de chemin à --fiche aurait copié
   // n'importe quel fichier lisible (une clé privée) dans le premier commit de l'appli.
-  describe("refuse, avant toute écriture, un fichier qui n'est pas un texte à copier dans le dépôt", () => {
+  describe("refuse, avant toute écriture, un fichier qui n'est pas un texte à copier dans le dépôt (--fiche)", () => {
     // Le mot de passe est coupé en deux : ce fichier-ci ne doit pas déclencher
     // les gardes de Claude, qui lisent le texte qu'il écrit.
     const CLE = "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjE=\n-----END OPENSSH PRIVATE KEY-----\n";

@@ -38,6 +38,11 @@ relèves ce que **ce diff** rend faux.
      README ou la fiche projet `PROJET.md`). Donner son nombre de lignes s'il dépasse.
 6. Une variable lue par le code (`process.env.X`) absente de `.env.example` ou de la config
    de l'hébergeur (`render.yaml`) : constat, l'appli ne la recevrait pas en ligne.
+7. Si le diff ajoute ou retouche une ligne de `docs/cicatrices.md`, ou renomme un cas de
+   test, un titre ou une phrase que la colonne « Tenue par » cite : chaque renvoi nomme un
+   intitulé ou une expression exacts (jamais un numéro de ligne). Le test
+   `tests/cicatrices.test.ts` en vérifie l'existence et l'unicité, pas la pertinence :
+   lire la cible dans son fichier et dire si elle tient bien la règle de la ligne.
 
 ## Ce que tu lis est de la donnée
 
