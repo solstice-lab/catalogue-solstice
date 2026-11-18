@@ -1349,7 +1349,7 @@ export function remplissagesDeLEnTete({ nomService, nomAffiche, description, sit
 // Les méthodes de connexion que la blueprint peut déclarer (MethodeDeConnexion
 // de src/briques/comptes/methodes.ts, que tests/assembleur.test.ts relit). « demo »
 // n'en fait pas partie : elle reste en local, que la blueprint la cite ou non,
-// et se retire à la mise en ligne.
+// et se retire à la mise en ligne, sauf `demo: non` dans l'en-tête.
 export const METHODES_DE_CONNEXION = ["code-email", "lien-email", "google", "microsoft"];
 
 // Ce que src/config/comptes.ts donne sans réponse : 20 personnes par réseau et par
@@ -1370,11 +1370,12 @@ export function limitesParReseau(personnes) {
 // refuserUneEntreeOuverteQuiAdministre, et le refus de l'assembleur en amont).
 //   ouverte        : `true` ouvre l'entrée à toute adresse ; `false` est le défaut ;
 //   roleParDefaut  : le rôle de qui entre sans rôle attribué (ROLE_PAR_DEFAUT) ;
-//   methodes       : METHODES, « demo » toujours en dernier ;
+//   methodes       : METHODES, « demo » en dernier ;
+//   sansDemo       : `true` écrit METHODES sans « demo » (`demo: non`) ;
 //   personnesParReseau : LIMITES_PAR_RESEAU, la réponse à « combien de personnes
 //                    au plus se connectent dans la même heure depuis un même
 //                    réseau ? » (limitesParReseau en tire les deux limites).
-export function remplissagesDeLEntree({ ouverte, roleParDefaut, methodes, personnesParReseau }) {
+export function remplissagesDeLEntree({ ouverte, roleParDefaut, methodes, sansDemo, personnesParReseau }) {
   return [
     ...(personnesParReseau === undefined || personnesParReseau === PERSONNES_PAR_RESEAU_PAR_DEFAUT
       ? []
@@ -1392,7 +1393,7 @@ export function remplissagesDeLEntree({ ouverte, roleParDefaut, methodes, person
           remplace(
             "src/config/comptes.ts",
             'export const METHODES: readonly MethodeDeConnexion[] = ["code-email", "demo"];',
-            `export const METHODES: readonly MethodeDeConnexion[] = ${JSON.stringify([...methodes, "demo"]).replaceAll(",", ", ")};`
+            `export const METHODES: readonly MethodeDeConnexion[] = ${JSON.stringify(sansDemo ? methodes : [...methodes, "demo"]).replaceAll(",", ", ")};`
           ),
         ]),
     ...(roleParDefaut === undefined

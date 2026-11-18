@@ -1562,6 +1562,11 @@ const REGLAGES_DE_L_ENTETE = {
     defaut: (texte) =>
       `METHODES reste ${/export const METHODES[^=]*=\s*(\[[^\]]*\])/.exec(texte)?.[1] ?? "celle du fichier"}`,
   },
+  demo: {
+    fichier: "src/config/comptes.ts",
+    defaut: (texte) =>
+      `« demo » reste ${/export const METHODES[^=]*=\s*\[[^\]]*"demo"/.test(texte) ? "dans" : "hors de"} METHODES`,
+  },
   personnes_par_reseau: {
     fichier: "src/config/comptes.ts",
     defaut: (texte) =>

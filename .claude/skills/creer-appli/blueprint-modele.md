@@ -2,7 +2,7 @@
 
 Chargé par `SKILL.md` à l'étape 3. Le format est décrit ici en entier : un en-tête YAML
 court, entre deux lignes `---` en tête de fichier, lu par l'assembleur pour `appli`, `commit_reference`,
-`profil`, `nom_affiche`, `description`, `site`, `entree`, `role_par_defaut`, `methodes` et `personnes_par_reseau`, et dont l'outil de mise
+`profil`, `nom_affiche`, `description`, `site`, `entree`, `role_par_defaut`, `methodes`, `demo` et `personnes_par_reseau`, et dont l'outil de mise
 à jour réécrit `commit_reference` et `briques_assemblees`, puis un corps Markdown : un
 titre, un paragraphe, et neuf sections numérotées dans l'ordre donné plus bas. Le ton :
 des phrases courtes, au présent, qui décrivent sans recopier ; la précision attendue :
@@ -27,7 +27,7 @@ dans une autre section.
 ---
 # Blueprint de l'appli <nom>. L'en-tête ne porte que l'essentiel, en clair :
 # l'assembleur en lit appli, profil, nom_affiche, description, site, entree,
-# role_par_defaut, methodes, personnes_par_reseau et commit_reference ; l'outil de mise à jour y réécrit
+# role_par_defaut, methodes, demo, personnes_par_reseau et commit_reference ; l'outil de mise à jour y réécrit
 # commit_reference et briques_assemblees ; tout le reste est dans le corps. Il ne recopie pas le branchement : il reste
 # dans son fichier.
 format: 1
@@ -38,7 +38,8 @@ description: <une ou deux phrases pour les moteurs et l'aperçu, sur une ligne>
 site: <public | ferme>
 entree: <ferme | ouverte>                          # avec la brique comptes seulement
 role_par_defaut: <rôle de qui entre sans rôle attribué, jamais un rôle d'administration>
-methodes: [<code-email, lien-email, google, microsoft>]        # « demo » : jamais listée ; l'assembleur la garde, un ticket la retire
+methodes: [<code-email, lien-email, google, microsoft>]        # « demo » : jamais listée ; l'assembleur la garde, un ticket la retire, sauf demo: non
+demo: <non, pour ne pas la garder ; absent : gardée>  # avec la brique comptes seulement
 personnes_par_reseau: <combien de personnes au plus se connectent dans la même heure depuis un même réseau>
 statut: <écrite avant tout code, brouillon validé par <qui> le <date>, suivi de « , cadrage court » s'il y a lieu>
 commit_reference: <à renseigner : l'assembleur le remplace>
@@ -95,7 +96,7 @@ briques:
     mentions légales ; son adresse et son téléphone, non : Render ne les publie pas sur son
     site, ils se relèvent sur la facture ou le DPA du compte Render (Dashboard → Billing, ou
     Account Settings), datés, et `/mentions-legales` affiche « Non renseigné » d'ici là.
-- `entree`, `role_par_defaut`, `methodes`, `personnes_par_reseau` : l'entrée tranchée au cadrage (`solstice-nouvelle-appli`
+- `entree`, `role_par_defaut`, `methodes`, `demo`, `personnes_par_reseau` : l'entrée tranchée au cadrage (`solstice-nouvelle-appli`
   §1, « Les accès »), que l'assembleur écrit dans `src/config/comptes.ts` et
   `src/config/acces.ts`. **Seulement avec la brique `comptes`** : déclarés sans elle, ils
   sont refusés, comme une promesse de connexion que l'appli ne tiendrait pas.
@@ -108,12 +109,18 @@ briques:
     s'ajoute par ticket après l'assemblage.
   - `methodes` : une liste sur une ligne parmi `code-email`, `lien-email` (appli grand public
     seulement, `URL_PUBLIQUE` en production), `google` et `microsoft`, écrite
-    dans `METHODES` ; sans le champ, `code-email`. `"demo"` est toujours gardée en dernier,
-    même quand la liste ne la cite pas, et se retire par la première PR fusionnée (elle refuse
-    la production, et la retirer de `METHODES` la retire aussi en local : section 9). `google` et
+    dans `METHODES` ; sans le champ, `code-email`. `"demo"` est gardée en dernier, même quand
+    la liste ne la cite pas, et se retire par la première PR fusionnée (elle refuse la
+    production, et la retirer de `METHODES` la retire aussi en local : section 9), sauf
+    `demo: non`. `google` et
     `microsoft` ne disent pas que leur application existe chez Google ou dans le portail
     Azure : leurs variables restent à déclarer. `microsoft` accepte un seul annuaire
     (`ANNUAIRES_MICROSOFT`), à changer par ticket pour un outil ouvert à plusieurs entreprises.
+  - `demo` : `non` écrit `METHODES` sans `"demo"`, dès l'assemblage : pas de démo en local,
+    et pas de PR de retrait en section 9 (la connexion locale passe par la méthode déclarée :
+    avec `google` ou `microsoft` seuls, personne n'entre en local avant que leurs variables
+    soient déclarées).
+    `oui`, ou le champ absent : elle est gardée. Toute autre valeur est refusée.
   - `personnes_par_reseau` : la réponse à « combien de personnes au plus peuvent se connecter
     dans la même heure depuis un même réseau (bureau, école, événement) ? », un entier d'au
     moins 1 (zéro, un texte ou un décimal sont refusés : la limite par IP ne se retire pas).
@@ -239,8 +246,8 @@ la description, puis :
    `theme/Marque.tsx`, exceptions de `tests/kit-tokens.test.ts` et
    `tests/marque-du-theme.test.ts` ; la marque de l'en-tête se change à part, avec le thème,
    dans `src/ui/theme/Marque.tsx`) ; écrire l'adaptateur de déploiement d'un hébergeur autre que
-   Render (avec la brique `deploiement`). Avec la brique `comptes` : retirer `"demo"` de
-   `METHODES` (`src/config/comptes.ts`). L'assembleur la garde même quand `methodes` ne la
+   Render (avec la brique `deploiement`). Avec la brique `comptes` et sans `demo: non` dans
+   l'en-tête : retirer `"demo"` de `METHODES` (`src/config/comptes.ts`). L'assembleur la garde même quand `methodes` ne la
    liste pas, et elle refuse la production : ce retrait est la **première PR fusionnée**,
    avant la création du Blueprint Render (qui déploie `main`), et l'étape de mise en ligne
    en dépend (`Bloqué par`), sans quoi le déploiement échoue. Il la retire aussi en local :
@@ -317,7 +324,7 @@ la description, puis :
    ### 9.1 Socle prêt pour la prod
 
    Vérifier ce que l'assembleur a écrit de l'en-tête, régler `src/lib/format.ts`, retirer
-   `"demo"` de `METHODES` (avec la brique `comptes`). Première PR fusionnée : la mise en ligne (9.4) en dépend.
+   `"demo"` de `METHODES` (avec la brique `comptes`, sans `demo: non`). Première PR fusionnée : la mise en ligne (9.4) en dépend.
 
    Vérifiable à l'écran : le titre de l'onglet porte le nom affiché de l'appli, et `/connexion`
    ne propose plus la démo.

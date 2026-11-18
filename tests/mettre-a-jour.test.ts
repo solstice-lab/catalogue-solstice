@@ -1616,7 +1616,9 @@ export const AUTRES_MAILS_ESSAI = [{ cle: "sous-traitant-bizarre", role: "Essai.
       { timeout: 3 * REJEU },
       () => {
         const lus = champsDeLEnteteLus(fs.readFileSync(path.join(SOURCE, "outils/assembler.mjs"), "utf-8"));
-        expect(lus).toEqual(expect.arrayContaining(["entree", "role_par_defaut", "methodes", "personnes_par_reseau"]));
+        expect(lus).toEqual(
+          expect.arrayContaining(["entree", "role_par_defaut", "methodes", "demo", "personnes_par_reseau"])
+        );
         const valeurs: Record<string, string> = {
           appli: "Essai de verrou",
           nom_affiche: '"Essai de verrou"',
@@ -1625,6 +1627,7 @@ export const AUTRES_MAILS_ESSAI = [{ cle: "sous-traitant-bizarre", role: "Essai.
           entree: "ouverte",
           role_par_defaut: "membre",
           methodes: "[code-email]",
+          demo: "non",
           personnes_par_reseau: "50",
         };
         // Un champ lu que l'essai ne sait pas remplir : le compléter ici, avec une valeur que l'assembleur accepte.
