@@ -59,7 +59,7 @@ section 9 que la ligne nomme, ou à défaut par celui qui remplit le fichier en 
 | Profil, briques | Déduits des trois réponses ; `deploiement` en plus (ligne Hébergement) | |
 | Leçons du registre | Les « Non tenue » ou « En partie » des sections que touchent les briques choisies et le métier, quand l'appli fait ce dont elles parlent (jamais celles qu'un test d'une brique verrouille), en tête de la section 9 de la blueprint (`blueprint-modele.md`) ; celles du métier que les trois réponses ne disent pas : « à confirmer au ticket du module » | |
 | Entités | Clé métier : le champ qui nomme une fiche (un nom, une référence), unique. Suppression : définitive, par qui modifie, comme le patron `dossiers` | |
-| Entrée (avec `comptes`) | `entree: ferme`, rôles `membre` (consulte, rôle par défaut) et `admin` (modifie), `methodes: [code-email]`, `personnes_par_reseau` omis (défaut du profil) | la mise en ligne : domaine ou adresses admis, premier admin |
+| Entrée (avec `comptes`) | `entree: ferme`, rôles `membre` (consulte, rôle par défaut) et `admin` (modifie), `methodes: [code-email]`, `demo` omis (gardée en local, retirée en 9.1), `personnes_par_reseau` omis (défaut du profil) | la mise en ligne : domaine ou adresses admis, premier admin |
 | Écrans, thème | Ordinateur d'abord, utilisable sur téléphone ; thème de repli (charte Solstice Lab), une charte du client se pose par le ticket « thématiser » | |
 | Qui livre | La personne qui mène le cadrage (propriétaire proposé du dépôt, étape 5.2) ; la signature Solstice Lab reste, et hors livraison Solstice Lab la retirer est un ticket de la section 9 | |
 | Langue, devise, fuseau | Français, euro, Europe/Paris | |

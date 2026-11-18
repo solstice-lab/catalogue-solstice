@@ -79,7 +79,7 @@ comparaison des empreintes attrape toute version qui ne serait pas la bonne.
 | --- | --- |
 | `catalogue.empreintes.json` de l'appli | Le commit A (`catalogue.commit`, et `catalogue.commitComplet` au format 2) ; au format 2, les réglages de l'assemblage (`assemblage`, « Ce qui est outillé ») ; au format 1, des réglages déduits : les briques B, valeurs d'`unite` qui sont des clés de `BRIQUES` d'`outils/modules.mjs` au commit A, ni `socle`, ni `donnees` (que `planifier` refuse dans `--briques`), ni les unités partagées `patron-dossiers` et `adresse-ip` (chaque brique a au moins son dossier, donc une entrée) ; Dependabot, par la présence de `.github/dependabot.yml` ; l'empreinte de chaque fichier venu du catalogue, hors `NOTICE`, `ADAPTATIONS.md` et `blueprint.md`. |
 | `package.json` de l'appli | Au format 1, le nom du paquet, que l'assembleur y a reporté. Un nom changé depuis se voit à la vérification des empreintes (`package.json` et le verrou le portent). |
-| `blueprint.md` de l'appli | `commit_reference`, recoupé avec le manifeste ; un désaccord se signale. Au format 1, son en-tête, que l'assembleur rejoué relit (`appli`, nom affiché, description, site, entrée, rôle par défaut, méthodes de connexion, personnes par réseau), sauf la blueprint minimale qu'il écrit sans `--blueprint`. |
+| `blueprint.md` de l'appli | `commit_reference`, recoupé avec le manifeste ; un désaccord se signale. Au format 1, son en-tête, que l'assembleur rejoué relit (`appli`, nom affiché, description, site, entrée, rôle par défaut, méthodes de connexion, démo, personnes par réseau), sauf la blueprint minimale qu'il écrit sans `--blueprint`. |
 | `PROJET.md` de l'appli (avec `--ajouter`) | Les briques ajoutées que la fiche écarte, avec leur raison, recopiées au rapport (« Ce qui est outillé », puce « L'ajout ») ; le reste de la fiche n'est jamais lu. |
 | `ADAPTATIONS.md` de l'appli | La note qui couvre chaque fichier fusionné ou en conflit, et sa nature, citées au rapport (« Ce qu'il fait de chaque fichier ») ; lu comme la garde le lit, jamais écrit. |
 | L'appli, à son `HEAD` | Le contenu de chaque fichier tel que git l'enregistre, comme le manifeste, pas le disque. L'arbre doit être propre. |
@@ -357,7 +357,7 @@ plus récent.
   suivantes ; sa valeur se règle dans le fichier de l'appli, comme une retouche
   (`src/config/comptes.ts` pour `LIMITES_PAR_RESEAU`, `METHODES` et `ENTREE`,
   `src/config/acces.ts` pour `ROLE_PAR_DEFAUT`). Le rapport le dit : quand l'assembleur du
-  commit visé lit un réglage d'entrée (`entree`, `role_par_defaut`, `methodes`,
+  commit visé lit un réglage d'entrée (`entree`, `role_par_defaut`, `methodes`, `demo`,
   `personnes_par_reseau`, d'après `CHAMPS_DE_L_ENTETE_LUS` de son `outils/assembler.mjs`)
   que l'assembleur du commit d'origine ne lisait pas et que l'en-tête rejoué n'a pas (la personne le lit une fois, au report qui l'introduit), la rubrique « En-tête de la blueprint » nomme le champ, le
   défaut que le catalogue laisse dans le fichier et le fichier à retoucher. Rien à dire
@@ -571,7 +571,7 @@ catalogue d'essai à deux commits : la CI ne clone pas l'historique.
    décision à prendre maintenant, avec ce que coûterait de les ajouter plus tard), et les
    textes que l'ajout rend faux : « n'en recevra pas après coup » (`creer-appli`, étapes 1
    et 2), « pas outillé » (README de la brique notifications), et ceux qui disent l'en-tête
-   de la blueprint lu pour `appli`, `profil`, `nom_affiche`, `description`, `site`, `entree`, `role_par_defaut`, `methodes`, `personnes_par_reseau` et `commit_reference` seulement (`blueprint-modele.md`,
+   de la blueprint lu pour `appli`, `profil`, `nom_affiche`, `description`, `site`, `entree`, `role_par_defaut`, `methodes`, `demo`, `personnes_par_reseau` et `commit_reference` seulement (`blueprint-modele.md`,
    le commentaire de la blueprint minimale dans `assembler.mjs`). Fait quand deux cas
    d'essai passent :
    - une appli `comptes,mails` retouchée (droits, menu, registre, politique, une étape de

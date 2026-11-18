@@ -82,7 +82,8 @@ Claude ne les fait pas. Chaque étape se défait tant que la suivante n'a pas
 eu lieu.
 
 1. **Avant le Blueprint**, dans une PR fusionnée sur `main` : avec la brique
-   comptes, retirer `"demo"` de `METHODES` (`src/config/comptes.ts`). La
+   comptes, retirer `"demo"` de `METHODES` (`src/config/comptes.ts`) si elle y est
+   encore (une blueprint à `demo: non` l'a écartée dès l'assemblage). La
    démo fait refuser toute requête en production, `/sante` comprise, et la
    création du Blueprint déploie la tête de `main`. Puis vérifier le nom du
    service et de la base dans `render.yaml`. L'assembleur les a écrits d'après `appli` dans

@@ -837,7 +837,7 @@ function personnesParReseauDeLEntete(markdown) {
 
 /*
  * L'entrée de l'appli que déclare l'en-tête : `entree` (ouverte ou ferme),
- * `role_par_defaut`, `methodes` et `personnes_par_reseau`. Sans réponse à cette
+ * `role_par_defaut`, `methodes`, `demo` et `personnes_par_reseau`. Sans réponse à cette
  * dernière, le défaut du profil (PROFILS de modules.mjs), s'il y en a un et que
  * la brique qui porte la connexion est gardée. Refusée avant toute écriture :
  *   - sans la brique qui porte la connexion, la promesse ne serait pas tenue ;
@@ -848,7 +848,8 @@ function personnesParReseauDeLEntete(markdown) {
  *     typecheck de l'appli au lieu d'un refus clair ici.
  * `demo` reste dans METHODES : elle refuse de démarrer en production, et son
  * retrait (aussi du poste) est la première PR de la section 9, dont dépend la
- * mise en ligne.
+ * mise en ligne. Sauf `demo: non` dans l'en-tête : une appli qui n'en voulait
+ * pas, même en local, devait l'ajouter puis la retirer par une PR.
  */
 function entreeDeLEntete(markdown, { unites, racine, profil }) {
   const entree = champDeLEntete(markdown, "entree");
@@ -857,17 +858,27 @@ function entreeDeLEntete(markdown, { unites, racine, profil }) {
   }
   const roleParDefaut = champDeLEntete(markdown, "role_par_defaut");
   const liste = listeDeLEntete(markdown, "methodes");
+  const demo = champDeLEntete(markdown, "demo");
+  if (demo !== undefined && demo !== "oui" && demo !== "non") {
+    throw new ErreurAssemblage(`En-tête de la blueprint, demo : oui ou non attendu, « ${demo} » trouvé.`);
+  }
   const personnesDonnees = personnesParReseauDeLEntete(markdown);
   const connexionGardee = unites.some((unite) => unite.gardee && unite.definition.connexion);
   // Le défaut du profil ne vaut que s'il y a une connexion à limiter.
   const personnesDuProfil = connexionGardee ? PROFILS[profil]?.personnesParReseau : undefined;
-  if (entree === undefined && roleParDefaut === undefined && liste === undefined && personnesDonnees === undefined) {
+  if (
+    entree === undefined &&
+    roleParDefaut === undefined &&
+    liste === undefined &&
+    demo === undefined &&
+    personnesDonnees === undefined
+  ) {
     return { personnesParReseau: personnesDuProfil };
   }
 
   if (!connexionGardee) {
     throw new ErreurAssemblage(
-      "L'en-tête de la blueprint règle l'entrée (entree, role_par_defaut, methodes ou personnes_par_reseau), mais la brique qui porte la connexion n'est pas gardée : l'ajouter à --briques, ou retirer ces champs."
+      "L'en-tête de la blueprint règle l'entrée (entree, role_par_defaut, methodes, demo ou personnes_par_reseau), mais la brique qui porte la connexion n'est pas gardée : l'ajouter à --briques, ou retirer ces champs."
     );
   }
   if (roleParDefaut !== undefined) {
@@ -892,6 +903,12 @@ function entreeDeLEntete(markdown, { unites, racine, profil }) {
         `En-tête de la blueprint, methodes : méthode de connexion « ${inconnue} » inconnue (${METHODES_DE_CONNEXION.join(", ")}).`
       );
     }
+    // Retirer la démo en silence donnerait raison à l'un des deux champs sans dire lequel.
+    if (demo === "non" && liste.includes("demo")) {
+      throw new ErreurAssemblage(
+        "En-tête de la blueprint : methodes cite demo alors que demo vaut non. Retirer demo de la liste, ou le champ demo."
+      );
+    }
     methodes = [...new Set(liste.filter((nom) => nom !== "demo"))];
     if (methodes.length === 0) {
       throw new ErreurAssemblage(
@@ -899,10 +916,14 @@ function entreeDeLEntete(markdown, { unites, racine, profil }) {
       );
     }
   }
+  // Sans liste, METHODES garde la méthode par défaut du catalogue ; il faut la
+  // nommer pour la réécrire sans la démo.
+  if (demo === "non") methodes ??= ["code-email"];
   return {
     ouverte: entree === undefined ? undefined : entree === "ouverte",
     roleParDefaut,
     methodes,
+    sansDemo: demo === "non",
     personnesParReseau: personnesDonnees ?? personnesDuProfil,
   };
 }
@@ -1054,6 +1075,7 @@ const CHAMPS_DE_L_ENTETE_LUS = [
   "entree",
   "role_par_defaut",
   "methodes",
+  "demo",
   "personnes_par_reseau",
 ];
 
@@ -1227,7 +1249,7 @@ function blueprintParDefaut({ nom, commit, briques }) {
     "---",
     "# Blueprint de l'appli, créée par outils/assembler.mjs. L'en-tête ne porte que",
     "# l'essentiel, en clair : l'assembleur en lit appli, profil, nom_affiche, description,",
-    "# site, entree, role_par_defaut, methodes, personnes_par_reseau et commit_reference ; l'outil de mise à jour",
+    "# site, entree, role_par_defaut, methodes, demo, personnes_par_reseau et commit_reference ; l'outil de mise à jour",
     "# du catalogue y réécrit commit_reference et briques_assemblees ; tout le reste est",
     "# dans le corps, à écrire.",
     "format: 1",
@@ -1516,7 +1538,7 @@ const AIDE = `Usage : node outils/assembler.mjs <dossier-vide> [--briques <liste
                       Son en-tête donne aussi le profil de départ (profil: ${Object.keys(PROFILS).join(", ")}),
                       dont les briques passent avant --briques, le nom affiché (nom_affiche),
                       la description et le choix site: public ou ferme, écrits dans l'appli ;
-                      avec la brique comptes, l'entrée (entree, role_par_defaut, methodes) et
+                      avec la brique comptes, l'entrée (entree, role_par_defaut, methodes, demo) et
                       les personnes au plus par réseau et par heure (personnes_par_reseau)
   --fiche <fichier>   la fiche projet, copiée telle quelle en PROJET.md à la racine
                       (défaut : pas de PROJET.md)

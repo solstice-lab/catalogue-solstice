@@ -2014,7 +2014,7 @@ describe("entrée de l'appli écrite par l'assembleur depuis la blueprint", () =
   );
 
   it(
-    "écrit les méthodes de connexion déclarées et garde « demo » en dernier, pour le local (la retirer reste un geste de la mise en ligne)",
+    "écrit les méthodes de connexion déclarées et garde « demo » en dernier sans demo: non, pour le local (la retirer reste un geste de la mise en ligne)",
     { timeout: ENTIER },
     () => {
       const methodes = (entete: string) =>
@@ -2024,6 +2024,25 @@ describe("entrée de l'appli écrite par l'assembleur depuis la blueprint", () =
       expect(methodes("methodes: [code-email, google]")).toBe('["code-email", "google", "demo"]');
       expect(methodes("methodes: [demo, google, code-email, google]")).toBe('["google", "code-email", "demo"]');
       expect(methodes("entree: ouverte")).toBe('["code-email", "demo"]');
+      expect(methodes("demo: oui")).toBe('["code-email", "demo"]');
+    }
+  );
+
+  // Une appli qui ne voulait pas de la démo, même en local, n'avait aucun moyen de
+  // l'écarter à l'assemblage : l'assembleur l'ajoutait toujours, et seule une PR
+  // après coup la retirait.
+  it(
+    "écrit METHODES sans « demo » quand l'en-tête dit demo: non, avec ou sans liste de méthodes",
+    { timeout: ENTIER },
+    async () => {
+      const methodes = (dossier: string) =>
+        /METHODES: readonly MethodeDeConnexion\[\] = (\[.*\]);/.exec(
+          lireAssemble(dossier, "src/config/comptes.ts")
+        )?.[1];
+      expect(methodes(assemblerAvec("methodes: [code-email, google]\ndemo: non"))).toBe('["code-email", "google"]');
+      const sansListe = assemblerAvec("demo: non");
+      expect(methodes(sansListe)).toBe('["code-email"]');
+      expect((await typecheck(sansListe)).code).toBe(0);
     }
   );
 
@@ -2036,6 +2055,8 @@ describe("entrée de l'appli écrite par l'assembleur depuis la blueprint", () =
       ["methodes: [sms]", /méthode/],
       ["methodes: [demo]", /méthode/],
       ["methodes: code-email", /liste/],
+      ["demo: false", /demo : oui ou non/],
+      ["methodes: [demo, google]\ndemo: non", /demo vaut non/],
       ["personnes_par_reseau: 0", /personnes_par_reseau : un nombre entier/],
       ["personnes_par_reseau: -3", /personnes_par_reseau : un nombre entier/],
       ["personnes_par_reseau: 2.5", /personnes_par_reseau : un nombre entier/],
@@ -2140,6 +2161,7 @@ describe("entrée de l'appli écrite par l'assembleur depuis la blueprint", () =
       "entree: ferme",
       "role_par_defaut: membre",
       "methodes: [code-email]",
+      "demo: non",
       "personnes_par_reseau: 50",
     ]) {
       const sortie = dossierTemporaireVide();

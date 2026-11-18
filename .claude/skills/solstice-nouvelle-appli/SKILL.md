@@ -40,6 +40,9 @@ en reporte aux tickets, la durée de conservation comprise.
 - Comment se connecter : code par e-mail, lien par e-mail (appli grand public
   seulement), Google, Microsoft 365 ? Avec Microsoft,
   l'annuaire du client seul (le cas normal) ou tous les annuaires ?
+- Une connexion de démonstration en local (un compte par rôle, sans rien vérifier), retirée
+  avant la mise en ligne ? Sans réponse, oui ; non : `demo: non` dans l'en-tête de la
+  blueprint (brique `comptes`).
 - Combien de personnes au plus peuvent se connecter dans la même heure depuis un même
   réseau (bureau, école, événement) ? Tout un réseau partage une adresse IP, et donc la
   limite de demandes de code par IP et par heure (`LIMITES_PAR_RESEAU`,
